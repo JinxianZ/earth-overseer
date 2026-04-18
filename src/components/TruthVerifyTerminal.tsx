@@ -183,7 +183,7 @@ export default function TruthVerifyTerminal() {
                             <span className="text-[10px] font-black uppercase tracking-widest">Warning_Flags</span>
                         </div>
                         <div className="space-y-3">
-                            {result.warning_signs.map((sign, i) => (
+                            {(result.warning_signs || []).map((sign, i) => (
                                 <div key={i} className="flex gap-3 text-xs">
                                     <div className="mt-1.5 w-1 h-1 rounded-full bg-rose-500 shrink-0" />
                                     <span className="text-slate-400 leading-relaxed">{sign}</span>
@@ -199,7 +199,7 @@ export default function TruthVerifyTerminal() {
                             <span className="text-[10px] font-black uppercase tracking-widest">Validation_Nodes</span>
                         </div>
                         <div className="space-y-2">
-                            {result.sources.map((source, i) => (
+                            {(result.sources || []).map((source, i) => (
                                 <a 
                                   key={i} 
                                   href={source.url} 

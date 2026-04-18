@@ -27,11 +27,8 @@ export default function GlobalShipMap({ isExpanded, onToggleExpand }: { isExpand
   const fetchShips = async () => {
     try {
       const res = await fetch('/api/ships');
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
       const data = await res.json();
-      setShips(data);
+      setShips(Array.isArray(data) ? data : []);
     } catch (err: any) {
       console.error('Failed to fetch ships:', err.message);
     } finally {

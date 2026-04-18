@@ -34,8 +34,12 @@ export default function StockTicker() {
     try {
       const url = `/api/stocks?symbols=${symbols.join(',')}`;
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      
+      if (!res.ok || !Array.isArray(data)) {
+        throw new Error(data.error || `HTTP ${res.status}`);
+      }
+      
       setStocks(data);
       setLastUpdate(new Date());
     } catch (err: any) {
@@ -96,7 +100,7 @@ export default function StockTicker() {
           </div>
         )}
 
-        {stocks.map((stock) => (
+        {(stocks || []).map((stock) => (
           <div 
             key={stock.symbol}
             className="p-4 border-b border-[#334155] hover:bg-white/5 transition-all group relative"

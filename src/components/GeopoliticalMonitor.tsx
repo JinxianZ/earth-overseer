@@ -14,7 +14,7 @@ import {
   Zap,
   Clock
 } from 'lucide-react';
-import { GoogleGenAI, Type } from "@google/genai";
+import { synthesizeGeopoliticalIntel } from '../geminiService';
 
 // Utility for merging tailwind classes
 function cn(...inputs: any[]) {
@@ -48,137 +48,71 @@ export default function GeopoliticalMonitor() {
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<'all' | 'conflicts' | 'politics'>('all');
 
-  const aiRef = useRef<any>(null);
-
-  useEffect(() => {
-    aiRef.current = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }, []);
-
-  const synthesizeAdvancedIntel = async (currentConflicts: ConflictZone[], existingNews: NewsItem[]) => {
-    if (!aiRef.current) return;
-    setIsSynthesizing(true);
-    
+  const fetchData = async () => {
     try {
-      const conflictContext = currentConflicts.map(c => `${c.area} (${c.type}): ${c.detail}`).join('\n');
+      const [newsRes, conflictRes] = await Promise.all([
+        fetch('/api/news'),
+        fetch('/api/conflicts')
+      ]);
+      const newsData = await newsRes.json();
+      const conflictData = await conflictRes.json();
       
-      const prompt = `
-        CRITICAL TASK: Using the GOOGLE SEARCH tool, find 4 ACTUAL, REAL-WORLD news articles/events that occurred between February 2026 and April 2026 (the current month).
-        
-        GEOPOLITICAL CONTEXT:
-        ${conflictContext}
-        
-        STRICT FILTERING & PRIORITIZATION:
-        1. ONLY return events from February 2026, March 2026, and April 2026.
-        2. MANDATORY: Prioritize news from FEBRUARY 2026. At least 2 of the 4 articles MUST be significant developments from February 2026.
-        3. ARRAY ORDER: Place the February 2026 news articles at the START of the JSON array.
-        4. Categories: Geopolitics, Maritime Trade, Energy Security, Political Policy.
-        
-        Requirements:
-        1. Use actual TITLES and specific details of the articles you find.
-        2. Assign a SEVERITY based on their impact on global trade.
-        3. Provide a specific, searchable image keyword seed for each.
-        4. Clearly state the actual date of the event in the summary or title if possible.
-      `;
+      const safeNewsData = Array.isArray(newsData) ? newsData : [];
+      const safeConflictData = Array.isArray(conflictData) ? conflictData : [];
+      
+      setConflicts(safeConflictData);
 
-      const result = await aiRef.current.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: prompt,
-        tools: [
-          { googleSearch: {} }
-        ],
-        config: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                category: { type: Type.STRING },
-                severity: { type: Type.STRING, enum: ['HIGH', 'MEDIUM', 'LOW'] },
-                imageSeed: { type: Type.STRING },
-                summary: { type: Type.STRING }
-              },
-              required: ['title', 'category', 'severity', 'imageSeed', 'summary']
-            }
-          }
-        }
-      });
-
-      const newIntel = JSON.parse(result.text);
-      const processedIntel = newIntel.map((item: any, idx: number) => ({
-        id: Date.now() + idx,
-        title: item.title,
-        category: item.category,
-        severity: item.severity,
-        timestamp: new Date().toISOString(),
-        image: `https://picsum.photos/seed/${item.imageSeed}/800/400`,
-        summary: item.summary,
-        interestScore: 100
-      }));
-
+      // Only seed initial news if empty
       setNews(prev => {
-        // Interest Decay Logic: reduce interest of old news
-        const decayed = prev.map(n => ({
-          ...n,
-          interestScore: Math.max(0, (n.interestScore || 70) - 15)
-        }));
-
-        // Filter out news with 0 interest (fell off)
-        const relevant = decayed.filter(n => (n.interestScore ?? 100) > 0);
-        
-        // Add new intel at the top and cap
-        return [...processedIntel, ...relevant].slice(0, 15);
+        if (prev.length === 0) {
+           return safeNewsData.map((n: any) => ({ ...n, interestScore: 80 }));
+        }
+        return prev;
       });
 
+      // Trigger AI synthesis to augment news
+      if (safeConflictData.length > 0) {
+        setIsSynthesizing(true);
+        try {
+          const context = safeConflictData.map((c: ConflictZone) => `${c.area} (${c.type}): ${c.detail}`).join('\n');
+          const processedIntel = await synthesizeGeopoliticalIntel(context);
+          
+          if (!Array.isArray(processedIntel)) {
+            throw new Error('AI output format mismatch');
+          }
+
+          const mappedIntel = processedIntel.map((item, idx) => ({
+            id: Date.now() + idx,
+            title: item.title,
+            category: item.category,
+            severity: item.severity,
+            timestamp: new Date().toISOString(),
+            image: `https://picsum.photos/seed/${item.imageSeed}/800/400`,
+            summary: item.summary,
+            interestScore: 100
+          }));
+
+          setNews(prev => {
+            const decayed = prev.map(n => ({
+              ...n,
+              interestScore: Math.max(0, (n.interestScore || 70) - 15)
+            }));
+            const relevant = decayed.filter(n => (n.interestScore ?? 100) > 0);
+            return [...mappedIntel, ...relevant].slice(0, 15);
+          });
+        } catch (err) {
+          console.error('Advanced synthesis failed:', err);
+        } finally {
+          setIsSynthesizing(false);
+        }
+      }
     } catch (err) {
-      console.error('Advanced synthesis failed:', err);
+      console.error('Failed to fetch geopolitical monitor data');
     } finally {
-      setIsSynthesizing(false);
+      setLoading(false);
     }
   };
 
-  const fetchData = async () => {
-  try {
-    const [newsRes, conflictRes] = await Promise.all([
-      fetch('/api/news'),
-      fetch('/api/conflicts')
-    ]);
-
-    if (!newsRes.ok) {
-      console.error(`News API failed: ${newsRes.status}`);
-      setLoading(false);
-      return;
-    }
-
-    if (!conflictRes.ok) {
-      console.error(`Conflicts API failed: ${conflictRes.status}`);
-      setLoading(false);
-      return;
-    }
-
-    const newsData = await newsRes.json();
-    const conflictData = await conflictRes.json();
-    
-    setConflicts(conflictData);
-
-    setNews(prev => {
-      if (prev.length === 0) {
-        return newsData.map((n: any) => ({ ...n, interestScore: 80 }));
-      }
-      return prev;
-    });
-
-    if (conflictData.length > 0) {
-      synthesizeAdvancedIntel(conflictData, newsData);
-    }
-  } catch (err) {
-    console.error('Failed to fetch geopolitical monitor data:', err);
-  } finally {
-    setLoading(false);
-  }
-};
-  
   useEffect(() => {
     fetchData();
     // Poll every 60 seconds for new AI-synthesized intelligence

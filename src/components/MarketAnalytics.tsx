@@ -31,7 +31,7 @@ import {
   Bar,
   ReferenceLine
 } from 'recharts';
-import { GoogleGenAI } from "@google/genai";
+import { generalQuantChat } from '../geminiService';
 
 // TradingView Widget initialization logic
 declare global {
@@ -93,9 +93,10 @@ export default function MarketAnalytics() {
     try {
       const res = await fetch('/api/corporate-intel');
       const data = await res.json();
-      setCorporateIntel(data);
+      setCorporateIntel(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error('Failed to fetch corporate intel:', e);
+      setCorporateIntel([]);
     }
   };
 
@@ -148,11 +149,6 @@ export default function MarketAnalytics() {
   };
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const aiRef = useRef<any>(null);
-
-  useEffect(() => {
-    aiRef.current = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -162,7 +158,7 @@ export default function MarketAnalytics() {
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!inputValue.trim() || !aiRef.current) return;
+    if (!inputValue.trim()) return;
 
     const userMsg: ChatMessage = { role: 'user', content: inputValue, timestamp: new Date() };
     setMessages(prev => [...prev, userMsg]);
@@ -170,21 +166,11 @@ export default function MarketAnalytics() {
     setIsTyping(true);
 
     try {
-      const response = await aiRef.current.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: inputValue,
-        config: {
-          systemInstruction: `You are 'QUANT-01', a high-frequency trading analyst for a geopolitical hedge fund. 
-          Your tone is cold, precise, and technical. 
-          Focus on arbitrage, risk vectors, and supply chain disruptions. 
-          Keep responses concise (max 3 sentences). 
-          Refer to market data in terms of 'volatility indices' and 'structural friction'.`,
-        }
-      });
+      const response = await generalQuantChat(inputValue);
 
       const aiMsg: ChatMessage = { 
         role: 'ai', 
-        content: response.text || "SYSTEM_ERROR: Response sequence interrupted.", 
+        content: response, 
         timestamp: new Date() 
       };
       setMessages(prev => [...prev, aiMsg]);

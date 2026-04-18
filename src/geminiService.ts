@@ -97,6 +97,94 @@ export async function analyzeMacroRisk(input: MacroInput): Promise<MacroOutput> 
   }
 }
 
+export interface GeopoliticalIntel {
+  title: string;
+  category: string;
+  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  imageSeed: string;
+  summary: string;
+}
+
+export async function synthesizeGeopoliticalIntel(context: string): Promise<GeopoliticalIntel[]> {
+  const ai = getAI();
+  
+  const SYNTHESIS_PROMPT = `You are a Geopolitical Intelligence Synthesizer. 
+Using the GOOGLE SEARCH tool, find 4 ACTUAL, REAL-WORLD news articles/events that occurred between February 2026 and April 2026.
+
+GEOPOLITICAL CONTEXT:
+${context}
+
+STRICT FILTERING & PRIORITIZATION:
+1. ONLY return events from February 2026 to April 2026.
+2. At least 2 articles MUST be from February 2026.
+3. Categories: Geopolitics, Maritime Trade, Energy Security, Political Policy.
+4. Output MUST be in JSON format matching the schema.`;
+
+  const SYNTHESIS_SCHEMA = {
+    type: Type.ARRAY,
+    items: {
+      type: Type.OBJECT,
+      properties: {
+        title: { type: Type.STRING },
+        category: { type: Type.STRING },
+        severity: { type: Type.STRING, enum: ['HIGH', 'MEDIUM', 'LOW'] },
+        imageSeed: { type: Type.STRING },
+        summary: { type: Type.STRING }
+      },
+      required: ['title', 'category', 'severity', 'imageSeed', 'summary']
+    }
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: SYNTHESIS_PROMPT,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json",
+        responseSchema: SYNTHESIS_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("Synthesis failed");
+    }
+
+    return JSON.parse(response.text) as GeopoliticalIntel[];
+  } catch (error) {
+    console.error("Geopolitical Synthesis Error:", error);
+    throw error;
+  }
+}
+
+export async function generalQuantChat(message: string): Promise<string> {
+  const ai = getAI();
+  
+  const CHAT_INSTRUCTION = `You are 'QUANT-01', a high-frequency trading analyst for a geopolitical hedge fund. 
+Your tone is cold, precise, and technical. 
+Focus on arbitrage, risk vectors, and supply chain disruptions. 
+Keep responses concise (max 3 sentences). 
+Refer to market data in terms of 'volatility indices' and 'structural friction'.`;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: message,
+      config: {
+        systemInstruction: CHAT_INSTRUCTION,
+        temperature: 0.7,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    return response.text || "SYSTEM_ERROR: Neural sequence interrupted.";
+  } catch (error) {
+    console.error("Quant Chat Error:", error);
+    return "CRITICAL_ERROR: Connection to HFT node terminated.";
+  }
+}
+
 export interface FactCheckResult {
   is_likely_fake: boolean;
   verdict_summary: string;
@@ -151,12 +239,12 @@ Constraints:
         { role: 'user', parts: [{ text: claimOrUrl }] }
       ],
       config: {
+        tools: [{ googleSearch: {} }],
         systemInstruction: VERIFICATION_PROMPT,
         temperature: 0.2,
         responseMimeType: "application/json",
         responseSchema: VERIFICATION_SCHEMA,
         safetySettings: SAFETY_SETTINGS as any,
-        tools: [{ googleSearch: {} }]
       }
     });
 

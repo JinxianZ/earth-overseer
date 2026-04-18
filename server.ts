@@ -1,10 +1,21 @@
 import express from 'express';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
-import yahooFinance from 'yahoo-finance2';
+// @ts-ignore
+import * as yfModule from 'yahoo-finance2';
 import 'dotenv/config';
 
-const yf = new (yahooFinance as any)();
+// Robust initialization for yahoo-finance2 v3+
+const YahooFinance = (yfModule as any).YahooFinance || 
+                     (yfModule as any).default?.YahooFinance || 
+                     (yfModule as any).default;
+
+const yf = typeof YahooFinance === 'function' ? new YahooFinance() : YahooFinance;
+
+// Verification check
+if (!yf || typeof yf.search !== 'function') {
+  console.error('[CRITICAL] Yahoo Finance module failed to initialize correctly.');
+}
 
 async function startServer() {
   const app = express();
@@ -260,17 +271,17 @@ async function startServer() {
         yf.quote('GC=F'),   // Gold
       ]);
 
-      const formattedIndicators = indicators.map(quote => ({
-        symbol: quote.symbol,
-        name: quote.shortName,
-        price: quote.regularMarketPrice,
-        changePercent: quote.regularMarketChangePercent,
+      const formattedIndicators = indicators.map((quote: any) => ({
+        symbol: (quote as any).symbol,
+        name: (quote as any).shortName,
+        price: (quote as any).regularMarketPrice,
+        changePercent: (quote as any).regularMarketChangePercent,
       }));
 
       res.json({
-        news: searchResults.news,
+        news: (searchResults as any).news,
         indicators: formattedIndicators,
-        quotes: searchResults.quotes
+        quotes: (searchResults as any).quotes
       });
     } catch (error: any) {
       console.error('[API] Yahoo Ingest failure:', error);

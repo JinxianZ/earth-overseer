@@ -222,8 +222,12 @@ export default function Dashboard() {
       try {
         const res = await fetch('/api/yahoo-ingest?q=global+logistics+market');
         const data = await res.json();
-        setYahooData(data);
-        addLog(`Yahoo Ingest: Sync'd ${data.news?.length || 0} intelligence vectors.`);
+        if (data && !data.error) {
+          setYahooData(data);
+          addLog(`Yahoo Ingest: Sync'd ${data.news?.length || 0} intelligence vectors.`);
+        } else {
+          addLog(`Yahoo Ingest: Node failure - ${data?.error || 'Invalid format'}`);
+        }
       } catch (err) {
         addLog("Yahoo Ingest: Node failure.");
       }
@@ -239,7 +243,12 @@ export default function Dashboard() {
     setLoading(true);
     setError(null);
     addLog("Initiating multimodal synthesis...");
-    addLog(`Analyzing ${input.geopolitical_data.length} geopolitical vectors...`);
+      // Safely count vectors
+      const vectorCount = (input.geopolitical_data?.length || 0) + 
+                          (input.corporate_scandals?.length || 0) + 
+                          (input.logistics_data?.length || 0);
+
+      addLog(`Analyzing ${vectorCount} multimodal vectors...`);
     
     try {
       const result = await analyzeMacroRisk(input);
@@ -348,14 +357,16 @@ export default function Dashboard() {
                         <span>Section F: Multimodal Global Ingest</span>
                       </div>
                       <span className="text-[var(--accent)] text-[10px] animate-pulse">
-                        {yahooData ? `${yahooData.news.length + yahooData.indicators.length} Active Feeds` : "Synchronizing..."}
+                        {(Array.isArray(yahooData?.news) && Array.isArray(yahooData?.indicators)) 
+                          ? `${yahooData!.news!.length + yahooData!.indicators!.length} Active Feeds` 
+                          : "Synchronizing..."}
                       </span>
                     </motion.div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
                       {/* Yahoo Indicators */}
                       <div className="grid grid-cols-2 gap-2">
-                        {yahooData?.indicators.map((ind, idx) => (
+                        {(yahooData?.indicators || []).map((ind, idx) => (
                           <motion.div
                             key={`ind-${idx}`}
                             initial={{ scale: 0.9, opacity: 0 }}
