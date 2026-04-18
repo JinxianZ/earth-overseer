@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { MacroInput, MacroOutput } from '../types';
 import { analyzeMacroRisk } from '../geminiService';
+import { useAuth } from '../contexts/AuthContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -220,6 +221,7 @@ export default function Dashboard() {
   const [logs, setLogs] = useState<string[]>(["[SYSTEM] Node initialized", "[SYSTEM] Awaiting ingestion..."]);
   const [yahooData, setYahooData] = useState<YahooData | null>(null);
   const [theme, setTheme] = useState(() => localStorage.getItem('app-theme') || 'dark');
+  const { user, profile, signOut } = useAuth();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -355,14 +357,38 @@ export default function Dashboard() {
             </div>
         </div>
 
-        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 text-[9px] text-slate-500">
-          <div className="mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
-            <Lock className="w-2.5 h-2.5" /> Security Protocol V2
+        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 space-y-4">
+          {/* User Profile Hook */}
+          <div className="bg-white/5 p-3 rounded-2xl border border-white/5 space-y-3">
+             <div className="flex items-center gap-3">
+                <img 
+                  src={user?.photoURL || `https://picsum.photos/seed/${user?.uid}/40/40`} 
+                  alt="Profile" 
+                  className="w-10 h-10 rounded-xl border border-[var(--accent)]" 
+                  referrerPolicy="no-referrer"
+                />
+                <div className="flex-1 min-w-0">
+                   <div className="text-[10px] font-black text-white truncate uppercase">{user?.displayName || "Analyst Omega"}</div>
+                   <div className="text-[8px] text-[var(--accent)] font-bold tracking-widest uppercase">Rank: Strategist</div>
+                </div>
+             </div>
+             <button 
+                onClick={() => signOut()}
+                className="w-full py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 text-[9px] font-black uppercase tracking-widest rounded-lg transition-colors border border-rose-500/20"
+             >
+                TERM_SESSION
+             </button>
           </div>
-          <div className="font-mono opacity-80 space-y-1">
-             <div className="flex justify-between"><span>NODE_ID:</span> <span className="text-[var(--text-main)]">AIS_37_Ω</span></div>
-             <div className="flex justify-between"><span>DIST:</span> <span className="text-[var(--text-main)]">ENCRYPTED</span></div>
-             <div className="flex justify-between"><span>SAFETY:</span> <span className="text-emerald-500">NOMINAL</span></div>
+
+          <div className="text-[9px] text-slate-500">
+            <div className="mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
+              <Lock className="w-2.5 h-2.5" /> Security Protocol V2
+            </div>
+            <div className="font-mono opacity-80 space-y-1">
+               <div className="flex justify-between"><span>NODE_ID:</span> <span className="text-[var(--text-main)]">AIS_37_Ω</span></div>
+               <div className="flex justify-between"><span>DIST:</span> <span className="text-[var(--text-main)]">ENCRYPTED</span></div>
+               <div className="flex justify-between"><span>SAFETY:</span> <span className="text-emerald-500">NOMINAL</span></div>
+            </div>
           </div>
         </div>
       </aside>

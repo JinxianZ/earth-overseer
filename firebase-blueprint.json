@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stored user preferences and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "theme": { "type": "string", "enum": ["dark", "light", "neon", "glitch"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "theme"]
+    },
+    "Simulation": {
+      "title": "Predictive Simulation",
+      "description": "Saved future projection scenario",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "horizon": { "type": "number" },
+        "headline": { "type": "string" },
+        "probability": { "type": "number" },
+        "marketImpact": { "type": "string" },
+        "geopoliticalShift": { "type": "string" },
+        "reasoning": { "type": "array", "items": { "type": "string" } },
+        "detailedExplanation": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "horizon", "headline", "probability", "createdAt"]
+    },
+    "IntelReport": {
+      "title": "Verified Intel Report",
+      "description": "Claims verified through the Truth Node",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "claim": { "type": "string" },
+        "verdict": { "type": "string" },
+        "isFake": { "type": "boolean" },
+        "reasoning": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "claim", "verdict", "isFake", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user profiles and settings"
+    },
+    "/simulations/{simId}": {
+      "schema": "Simulation",
+      "description": "Global repository of saved strategy simulations"
+    },
+    "/intel_reports/{reportId}": {
+      "schema": "IntelReport",
+      "description": "Vetted intelligence vectors"
+    }
+  }
+}
