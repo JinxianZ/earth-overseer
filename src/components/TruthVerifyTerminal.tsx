@@ -26,11 +26,11 @@ export default function TruthVerifyTerminal() {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-[#0c121e] overflow-hidden relative">
+    <div className="flex-1 flex flex-col bg-[var(--bg)] overflow-hidden relative">
       <div className="absolute inset-0 opacity-5 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
       
       {/* Header */}
-      <div className="p-6 border-b border-white/5 bg-white/5 backdrop-blur-xl flex items-center justify-between z-10">
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--glass)] backdrop-blur-xl flex items-center justify-between z-10">
         <div className="flex items-center gap-3">
           <ShieldCheck className="w-6 h-6 text-[#38bdf8]" />
           <div>
@@ -52,7 +52,7 @@ export default function TruthVerifyTerminal() {
       <div className="flex-1 flex gap-6 p-8 overflow-hidden z-10">
         {/* Input Pane */}
         <div className="w-1/3 flex flex-col gap-6">
-          <div className="p-6 bg-white/5 border border-white/5 rounded-2xl backdrop-blur-md flex flex-col gap-4">
+          <div className="p-6 bg-[var(--well)] border border-[var(--border)] rounded-2xl backdrop-blur-md flex flex-col gap-4">
             <div className="flex items-center gap-2 text-slate-400">
                <Activity className="w-4 h-4" />
                <span className="text-[10px] font-black uppercase tracking-widest">Ingest Terminal</span>
@@ -67,7 +67,7 @@ export default function TruthVerifyTerminal() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="ENTER_CLAIM_OR_URL..."
-              className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-white font-mono text-xs focus:outline-none focus:border-[#38bdf8]/50 transition-colors resize-none placeholder:opacity-30"
+              className="w-full h-32 bg-[var(--well)] border border-[var(--border)] rounded-xl p-4 text-[var(--text-main)] font-mono text-xs focus:outline-none focus:border-[var(--accent)]/50 transition-colors resize-none placeholder:opacity-30"
             />
 
             <button
@@ -89,8 +89,8 @@ export default function TruthVerifyTerminal() {
             </button>
           </div>
 
-          <div className="flex-1 border border-dashed border-white/5 rounded-2xl flex flex-col items-center justify-center p-8 text-center opacity-30">
-             <div className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center mb-4">
+          <div className="flex-1 border border-dashed border-[var(--border)] rounded-2xl flex flex-col items-center justify-center p-8 text-center opacity-30">
+             <div className="w-12 h-12 rounded-full border border-[var(--border)] flex items-center justify-center mb-4">
                 <Info className="w-6 h-6" />
              </div>
              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Scan History</div>
@@ -159,7 +159,7 @@ export default function TruthVerifyTerminal() {
                         )}>
                             INTELLIGENCE_VERDICT
                         </div>
-                        <h2 className="text-3xl font-black text-white leading-none">
+                        <h2 className="text-3xl font-black text-[var(--text-main)] leading-none">
                             {result.is_likely_fake ? "FABRICATION_DETECTED" : "CREDIBLE_VITALITY"}
                         </h2>
                     </div>
@@ -167,17 +167,17 @@ export default function TruthVerifyTerminal() {
 
                 <div className="grid grid-cols-2 gap-6">
                     {/* Reasoning Section */}
-                    <div className="col-span-2 p-6 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-4">
-                        <div className="flex items-center gap-2 text-slate-400 border-b border-white/5 pb-4">
+                    <div className="col-span-2 p-6 bg-[var(--well)] border border-[var(--border)] rounded-2xl flex flex-col gap-4">
+                        <div className="flex items-center gap-2 text-slate-400 border-b border-[var(--border)] pb-4">
                             <Info className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Verdict_Synthesis</span>
                         </div>
-                        <p className="text-sm font-bold text-white leading-relaxed">{result.verdict_summary}</p>
+                        <p className="text-sm font-bold text-[var(--text-main)] leading-relaxed">{result.verdict_summary}</p>
                         <p className="text-xs text-slate-400 leading-relaxed">{result.reasoning}</p>
                     </div>
 
                     {/* Warning Signs */}
-                    <div className="p-6 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-4">
+                    <div className="p-6 bg-[var(--well)] border border-[var(--border)] rounded-2xl flex flex-col gap-4">
                         <div className="flex items-center gap-2 text-slate-400 mb-2">
                             <AlertCircle className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Warning_Flags</span>
@@ -193,7 +193,7 @@ export default function TruthVerifyTerminal() {
                     </div>
 
                     {/* Intelligence Sources */}
-                    <div className="p-6 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-4">
+                    <div className="p-6 bg-[var(--well)] border border-[var(--border)] rounded-2xl flex flex-col gap-4">
                         <div className="flex items-center gap-2 text-slate-400 mb-2">
                              <ExternalLink className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Validation_Nodes</span>
@@ -205,9 +205,9 @@ export default function TruthVerifyTerminal() {
                                   href={source.url} 
                                   target="_blank" 
                                   rel="noopener noreferrer"
-                                  className="group flex flex-col p-3 rounded-lg bg-black/40 border border-white/5 hover:border-[#38bdf8]/30 transition-all"
+                                  className="group flex flex-col p-3 rounded-lg bg-[var(--well)] border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all"
                                 >
-                                    <span className="text-[10px] text-white font-bold group-hover:text-[#38bdf8] transition-colors">{source.title}</span>
+                                    <span className="text-[10px] text-[var(--text-main)] font-bold group-hover:text-[var(--accent)] transition-colors">{source.title}</span>
                                     <span className="text-[8px] font-mono text-slate-600 truncate mt-1">{source.url}</span>
                                 </a>
                             ))}
@@ -224,11 +224,11 @@ export default function TruthVerifyTerminal() {
                 <div className="p-4 bg-rose-500/20 text-rose-500 rounded-full mb-2">
                   <AlertCircle className="w-12 h-12" />
                 </div>
-                <h3 className="text-lg font-black text-white uppercase tracking-widest">Scan_Aborted</h3>
+                <h3 className="text-lg font-black text-[var(--text-main)] uppercase tracking-widest">Scan_Aborted</h3>
                 <p className="text-xs text-slate-500 leading-relaxed font-mono">{error}</p>
                 <button 
                    onClick={() => setError(null)}
-                   className="mt-4 px-6 py-2 border border-white/10 hover:border-[#38bdf8] text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full transition-all"
+                   className="mt-4 px-6 py-2 border border-[var(--border)] hover:border-[var(--accent)] text-[var(--text-main)] text-[10px] font-black uppercase tracking-[0.2em] rounded-full transition-all"
                 >
                   Clear_Buffer
                 </button>
@@ -237,7 +237,7 @@ export default function TruthVerifyTerminal() {
                 <div className="flex-1 flex flex-col items-center justify-center gap-6 opacity-30">
                     <ShieldCheck className="w-32 h-32 text-slate-600" />
                     <div className="text-center">
-                        <h3 className="text-2xl font-black uppercase tracking-[0.4em] text-white">Truth Sentry</h3>
+                        <h3 className="text-2xl font-black uppercase tracking-[0.4em] text-[var(--text-main)]">Truth Sentry</h3>
                         <p className="text-sm font-mono text-slate-500 mt-2 tracking-widest italic">AWAITING_CLAIM_FOR_RESEARCH</p>
                     </div>
                 </div>

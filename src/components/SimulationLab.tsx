@@ -208,7 +208,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                           width: '8px',
                           height: '100%'
                         } as any}
-                        className="bg-white/10 rounded-full cursor-pointer hover:bg-white/20 transition-all accent-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-[var(--faint)] rounded-full cursor-pointer hover:bg-[var(--well)] transition-all accent-[var(--accent)] disabled:opacity-50 disabled:cursor-not-allowed"
                       />
                     </div>
                     <div className="flex flex-col justify-between h-full text-[9px] font-bold text-slate-500 uppercase py-1">
@@ -229,7 +229,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                    </div>
                    <div 
                     ref={scrollRef}
-                    className="h-32 bg-black/60 rounded-2xl border border-white/5 p-4 font-mono text-[10px] space-y-1 overflow-y-auto scrollbar-hide shadow-inner"
+                    className="h-32 bg-[var(--well)] rounded-2xl border border-[var(--border)] p-4 font-mono text-[10px] space-y-1 overflow-y-auto scrollbar-hide shadow-inner"
                    >
                       {simLogs.length === 0 ? (
                         <div className="text-slate-700 animate-pulse italic">_ Awaiting horizon selection to initialize simulation...</div>
@@ -281,7 +281,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                         <button 
                           onClick={saveSimulation}
                           disabled={isSaving}
-                          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-[var(--accent)] hover:text-black text-[10px] font-black uppercase tracking-widest rounded-xl border border-white/10 transition-all disabled:opacity-50"
+                          className="flex items-center gap-2 px-4 py-2 bg-[var(--glass)] hover:bg-[var(--accent)] hover:text-black text-[10px] font-black uppercase tracking-widest rounded-xl border border-[var(--border)] transition-all disabled:opacity-50"
                         >
                           {isSaving ? (
                             <RefreshCw className="w-3 h-3 animate-spin" />
@@ -298,7 +298,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                            <svg className="w-full h-full transform -rotate-90">
                               <circle 
                                 cx="40" cy="40" r="36" 
-                                className="stroke-white/5 fill-none" 
+                                className="stroke-[var(--border)] fill-none" 
                                 strokeWidth="6" 
                               />
                               <motion.circle 
@@ -327,7 +327,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                         <h2 className="text-4xl font-black text-[var(--text-main)] italic leading-[1.1] uppercase tracking-tight">
                           {projection.headline}
                         </h2>
-                        <div className="p-6 bg-white/[0.02] rounded-2xl border border-white/5 space-y-3">
+                        <div className="p-6 bg-[var(--glass)] rounded-2xl border border-[var(--border)] space-y-3">
                            <div className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-500">
                              <Zap className="w-3 h-3" /> Neural Logic Breakdown
                            </div>
@@ -414,7 +414,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
             ) : null}
           </AnimatePresence>
 
-          <section className="space-y-6 pt-12 border-t border-white/5">
+          <section className="space-y-6 pt-12 border-t border-[var(--border)]">
              <div className="flex items-center justify-between px-2">
                 <div className="flex items-center gap-3">
                    <Archive className="w-5 h-5 text-slate-500" />
@@ -424,8 +424,8 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
              </div>
 
              {archives.length === 0 ? (
-               <div className="p-12 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center space-y-4">
-                  <FileText className="w-12 h-12 text-white/10" />
+               <div className="p-12 border-2 border-dashed border-[var(--border)] rounded-[2.5rem] flex flex-col items-center justify-center text-center space-y-4">
+                  <FileText className="w-12 h-12 text-[var(--accent)] opacity-20" />
                   <p className="text-slate-500 text-xs font-mono uppercase tracking-widest">No historical tactical projections found.</p>
                </div>
              ) : (
@@ -435,7 +435,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                       key={sim.id}
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="group p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-[var(--accent)]/30 transition-all flex flex-col gap-4 relative"
+                      className="group p-6 bg-[var(--well)] rounded-3xl border border-[var(--border)] hover:border-[var(--accent)]/30 transition-all flex flex-col gap-4 relative"
                     >
                        <div className="flex justify-between items-start">
                           <div className="px-2 py-0.5 bg-[var(--accent)] text-black text-[8px] font-black uppercase rounded">
@@ -454,7 +454,7 @@ export default function SimulationLab({ input, theme }: SimulationLabProps) {
                              {sim.createdAt?.toDate ? new Date(sim.createdAt.toDate()).toLocaleDateString() : 'REAL_TIME'}
                           </p>
                        </div>
-                       <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold">
+                       <div className="mt-auto pt-4 border-t border-[var(--border)] flex items-center justify-between text-[10px] font-bold">
                           <span className={cn(
                             sim.probability > 0.7 ? "text-emerald-500" : "text-amber-500"
                           )}>

@@ -276,7 +276,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] font-sans flex w-full h-screen overflow-hidden transition-colors duration-500" data-theme={theme}>
       {/* Sidebar - Redesigned to Orbital Command Hub */}
-      <aside className="w-[300px] bg-[var(--sidebar)] text-[var(--text-main)] p-6 flex flex-col gap-8 flex-shrink-0 border-r border-white/5 relative overflow-hidden transition-colors duration-500">
+      <aside className="w-[300px] bg-[var(--sidebar)] text-[var(--text-main)] p-6 flex flex-col gap-8 flex-shrink-0 border-r border-[var(--border)] relative overflow-hidden transition-colors duration-500">
         {/* Background circuit pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/micro-carbon.png')]" />
         
@@ -312,8 +312,8 @@ export default function Dashboard() {
                             className={cn(
                                 "flex-1 min-w-[50px] p-2 rounded border transition-all flex flex-col items-center gap-1 group relative overflow-hidden",
                                 theme === t.id 
-                                    ? "bg-white/10 border-[var(--accent)]" 
-                                    : "bg-white/5 border-white/5 hover:border-white/20"
+                                    ? "bg-[var(--accent)]/10 border-[var(--accent)]" 
+                                    : "bg-[var(--well)] border-[var(--border)] hover:border-[var(--accent)]/50"
                             )}
                         >
                             <div 
@@ -357,9 +357,9 @@ export default function Dashboard() {
             </div>
         </div>
 
-        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 space-y-4">
+        <div className="relative z-10 mt-auto border-t border-[var(--border)] pt-4 space-y-4">
           {/* User Profile Hook */}
-          <div className="bg-white/5 p-3 rounded-2xl border border-white/5 space-y-3">
+          <div className="bg-[var(--well)] p-3 rounded-2xl border border-[var(--border)] space-y-3">
              <div className="flex items-center gap-3">
                 <img 
                   src={user?.photoURL || `https://picsum.photos/seed/${user?.uid}/40/40`} 
@@ -396,7 +396,7 @@ export default function Dashboard() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header - Unified */}
-        <header className="p-6 border-b border-[var(--border)] bg-white/5 backdrop-blur-xl flex justify-between items-end">
+        <header className="p-6 border-b border-[var(--border)] bg-[var(--glass)] backdrop-blur-xl flex justify-between items-end">
           <div className="header-title">
             <h1 className="text-2xl font-black text-white capitalize italic tracking-tight">{activeView} Intelligence Node</h1>
             <p className="text-[var(--text-muted)] text-[10px] uppercase font-mono tracking-widest mt-1">
@@ -450,7 +450,7 @@ export default function Dashboard() {
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: idx * 0.05 }}
                             whileHover={{ scale: 1.05, borderLeft: '4px solid var(--accent)' }}
-                            className="p-2 bg-white/5 border border-white/5 rounded text-[10px] flex justify-between items-center"
+                            className="p-2 bg-[var(--well)] border border-[var(--border)] rounded text-[10px] flex justify-between items-center"
                           >
                             <span className="font-bold text-slate-400">{ind.symbol}</span>
                             <span className={cn(
@@ -472,7 +472,7 @@ export default function Dashboard() {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.2 + idx * 0.05 }}
                             whileHover={{ x: 5, backgroundColor: 'rgba(56, 189, 248, 0.05)' }}
-                            className="p-2.5 rounded text-[10px] border-l-[3px] border-[var(--accent)] bg-white/5 shadow-sm cursor-pointer group hover:border-white transition-all"
+                            className="p-2.5 rounded text-[10px] border-l-[3px] border-[var(--accent)] bg-[var(--well)] shadow-sm cursor-pointer group hover:border-[var(--text-main)] transition-all"
                           >
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-[var(--accent)] font-bold uppercase tracking-tighter">{news.publisher}</span>
@@ -493,7 +493,7 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-white/5">
+                    <div className="mt-4 pt-4 border-t border-[var(--border)]">
                        <motion.button 
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
@@ -584,9 +584,9 @@ export default function Dashboard() {
                         { label: 'Regulatory Counter-Action', width: '45%', color: 'bg-amber-500' },
                         { label: 'Liquidity Depth Variance', width: '22%', color: 'bg-blue-500' }
                       ].map((risk, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/5">
+                        <div key={idx} className="flex justify-between items-center bg-[var(--well)] p-2.5 rounded-xl border border-[var(--border)]">
                           <div className="text-[11px] font-bold text-slate-400 tracking-tight">{risk.label}</div>
-                          <div className="stat-bar w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <div className="stat-bar w-32 h-1.5 bg-[var(--faint)] rounded-full overflow-hidden">
                             <motion.div 
                               initial={{ width: 0 }}
                               animate={{ width: risk.width }}
@@ -600,7 +600,7 @@ export default function Dashboard() {
                         <motion.div 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="text-[10px] text-slate-400 mt-2 pt-3 border-t border-white/5 leading-tight italic bg-black/40 p-3 rounded-xl shadow-inner"
+                          className="text-[10px] text-slate-400 mt-2 pt-3 border-t border-[var(--border)] leading-tight italic bg-[var(--well)] p-3 rounded-xl shadow-inner"
                         >
                           <strong>Critical Downside:</strong> {output.risk_exposure}
                         </motion.div>
@@ -625,7 +625,7 @@ export default function Dashboard() {
                       </div>
                       <ChevronRight className="w-3 h-3 text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-all" />
                     </motion.div>
-                    <div className="flex-1 min-h-[140px] relative group overflow-hidden bg-black/40 rounded-xl border border-white/5">
+                    <div className="flex-1 min-h-[140px] relative group overflow-hidden bg-[var(--well)] rounded-xl border border-[var(--border)]">
                        <GlobalShipMap />
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-3">
