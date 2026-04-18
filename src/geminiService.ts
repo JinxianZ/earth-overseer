@@ -264,3 +264,69 @@ Constraints:
     throw error;
   }
 }
+
+export interface FutureProjection {
+  headline: string;
+  probability: number;
+  market_impact: string;
+  geopolitical_shift: string;
+  recommended_hedge: string;
+  reasoning: string[]; // Step-by-step logic
+  detailed_explanation: string;
+}
+
+export async function projectFutureState(context: MacroInput, horizon: number): Promise<FutureProjection> {
+  const ai = getAI();
+  
+  const PROJECTION_PROMPT = `You are the 'PREDICTIVE_ORACLE' Node. 
+Target Time Horizon: ${horizon} hours into the future.
+
+MISSION:
+Using the current macroeconomic, corporate, and geopolitical context, project the most likely "Next Move" in the global landscape. 
+Analyze second-order effects (e.g., if a canal is blocked for 72h, what happens to just-in-time manufacturing in Germany?).
+
+Output MUST be a single high-fidelity projection.`;
+
+  const PROJECTION_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+      headline: { type: Type.STRING },
+      probability: { type: Type.NUMBER, description: "0.0 to 1.0 probability of occurrence" },
+      market_impact: { type: Type.STRING },
+      geopolitical_shift: { type: Type.STRING },
+      recommended_hedge: { type: Type.STRING },
+      reasoning: { 
+        type: Type.ARRAY, 
+        items: { type: Type.STRING },
+        description: "3-4 steps of internal simulation logic"
+      },
+      detailed_explanation: { type: Type.STRING }
+    },
+    required: ["headline", "probability", "market_impact", "geopolitical_shift", "recommended_hedge", "reasoning", "detailed_explanation"]
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        { role: 'user', parts: [{ text: `CONTEXT: ${JSON.stringify(context, null, 2)}\n\nTIME_HORIZON: ${horizon}h` }] }
+      ],
+      config: {
+        systemInstruction: PROJECTION_PROMPT,
+        temperature: 0.4,
+        responseMimeType: "application/json",
+        responseSchema: PROJECTION_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("Projection failed");
+    }
+
+    return JSON.parse(response.text) as FutureProjection;
+  } catch (error) {
+    console.error("Future Projection Error:", error);
+    throw error;
+  }
+}

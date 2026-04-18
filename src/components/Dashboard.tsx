@@ -14,7 +14,8 @@ import {
   RefreshCw,
   Search,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -76,8 +77,9 @@ import StockTicker from './StockTicker';
 import GeopoliticalMonitor from './GeopoliticalMonitor';
 import MarketAnalytics from './MarketAnalytics';
 import TruthVerifyTerminal from './TruthVerifyTerminal';
+import SimulationLab from './SimulationLab';
 
-type AppTab = 'dashboard' | 'market' | 'geopolitical' | 'logistics' | 'truth';
+type AppTab = 'dashboard' | 'market' | 'geopolitical' | 'logistics' | 'truth' | 'simulation';
 
 // New Component for Orbital Navigation
 const Satellite = ({ color = "#38bdf8" }: { color?: string }) => (
@@ -115,7 +117,8 @@ const OrbitalNav = ({
     { id: 'market', icon: Activity, label: 'Pulse' },
     { id: 'geopolitical', icon: Globe, label: 'Geo' },
     { id: 'logistics', icon: Truck, label: 'Matrix' },
-    { id: 'truth', icon: ShieldCheck, label: 'Truth' }
+    { id: 'truth', icon: ShieldCheck, label: 'Truth' },
+    { id: 'simulation', icon: Clock, label: 'Lab' }
   ];
 
   return (
@@ -661,7 +664,19 @@ export default function Dashboard() {
                 </motion.div>
               )}
 
-              {activeView !== 'dashboard' && activeView !== 'geopolitical' && activeView !== 'logistics' && activeView !== 'market' && activeView !== 'truth' && (
+              {activeView === 'simulation' && (
+                <motion.div
+                  key="simulation"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex-1 flex overflow-hidden"
+                >
+                  <SimulationLab input={input} theme={theme} />
+                </motion.div>
+              )}
+
+              {activeView !== 'dashboard' && activeView !== 'geopolitical' && activeView !== 'logistics' && activeView !== 'market' && activeView !== 'truth' && activeView !== 'simulation' && (
                 <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] font-mono text-sm">
                   VECTOR_NODE [{activeView}] UNDER_MAINTENANCE...
                 </div>
