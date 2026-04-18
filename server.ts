@@ -4,6 +4,8 @@ import path from 'path';
 import yahooFinance from 'yahoo-finance2';
 import 'dotenv/config';
 
+const yf = new (yahooFinance as any)();
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -23,7 +25,7 @@ async function startServer() {
       const results = await Promise.all(
         symbols.map(async (symbol) => {
           try {
-            const quote: any = await yahooFinance.quote(symbol);
+            const quote: any = await yf.quote(symbol);
             return {
               symbol,
               price: quote.regularMarketPrice,
@@ -70,17 +72,17 @@ async function startServer() {
     const shipTypes: ('Cargo' | 'Tanker' | 'Container')[] = ['Cargo', 'Tanker', 'Container'];
     const destinations = ['Shanghai', 'Singapore', 'Rotterdam', 'Jebel Ali', 'Busan', 'Los Angeles', 'Hamburg'];
     
-    const ships = Array.from({ length: 60 }).map((_, i) => ({
+    const ships = Array.from({ length: 500 }).map((_, i) => ({
       id: `ship-${i}`,
       name: i < shipNames.length ? shipNames[i] : `Vessel_${1000 + i}`,
       type: shipTypes[i % 3],
-      lat: (Math.random() * 120) - 60,
+      lat: (Math.random() * 140) - 70,
       lng: (Math.random() * 360) - 180,
       speed: 10 + Math.random() * 12,
       course: Math.random() * 360,
       destination: destinations[i % destinations.length],
       imo: 9000000 + i,
-      last_update: new Date().toISOString()
+      last_sync: new Date(Math.floor(Date.now() / 600000) * 600000).toISOString()
     }));
     res.json(ships);
   });
@@ -102,6 +104,143 @@ async function startServer() {
       { name: 'Los Angeles (US)', lat: 33.7, lng: -118.2, type: 'Port', throughput: '9.2M TEU' },
     ];
     res.json(ports);
+  });
+
+  // Global News Feed
+  app.get('/api/news', (req, res) => {
+    const news = [
+      { 
+        id: 9, 
+        title: "Tactical Update: Naval escorts mandatory in Strait of Hormuz per insurance mandates", 
+        category: "GEOPOLITICAL", 
+        severity: "HIGH", 
+        timestamp: new Date().toISOString(),
+        image: "https://picsum.photos/seed/hormuz/800/400"
+      },
+      { 
+        id: 1, 
+        title: "OPEC+ signals deeper production cuts amid slowing demand", 
+        category: "ENERGY", 
+        severity: "HIGH", 
+        timestamp: new Date(Date.now() - 600000).toISOString(),
+        image: "https://picsum.photos/seed/oil-rig/800/400"
+      },
+      { 
+        id: 10, 
+        title: "Panama Canal drought restricts deep-draft transit for container fleet", 
+        category: "LOGISTICS", 
+        severity: "MEDIUM", 
+        timestamp: new Date(Date.now() - 1200000).toISOString(),
+        image: "https://picsum.photos/seed/canal/800/400"
+      },
+      { 
+        id: 6, 
+        title: "U.S. Senate debates new maritime technology subsidies and ESG frameworks", 
+        category: "POLITICS", 
+        severity: "MEDIUM", 
+        timestamp: new Date(Date.now() - 1800000).toISOString(),
+        image: "https://picsum.photos/seed/capitol/800/400"
+      },
+      { 
+        id: 7, 
+        title: "European Union finalizes strict environmental shipping regulations for 2027", 
+        category: "POLITICS", 
+        severity: "HIGH", 
+        timestamp: new Date(Date.now() - 2400000).toISOString(),
+        image: "https://picsum.photos/seed/brussels-eu/800/400"
+      },
+      { 
+        id: 3, 
+        title: "Strategic grain reserves depleted in Southeast Asia after monsoons", 
+        category: "COMMODITIES", 
+        severity: "HIGH", 
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        image: "https://picsum.photos/seed/grain-silo/800/400"
+      },
+      { 
+        id: 11, 
+        title: "China's 'Belt and Road' logistics hub in Djibouti reaches full capacity", 
+        category: "GEOPOLITICAL", 
+        severity: "MEDIUM", 
+        timestamp: new Date(Date.now() - 4200000).toISOString(),
+        image: "https://picsum.photos/seed/port-crane/800/400"
+      },
+      { 
+        id: 8, 
+        title: "G7 leaders meet to discuss global infrastructure corridor security", 
+        category: "POLITICS", 
+        severity: "LOW", 
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        image: "https://picsum.photos/seed/leaders-meeting/800/400"
+      }
+    ];
+    res.json(news);
+  });
+
+  // Critical Conflict Zones
+  app.get('/api/conflicts', (req, res) => {
+    const conflicts = [
+      { id: 'c1', area: 'Red Sea Corridor', type: 'Maritime Security', threat_level: 'Critical', ships_affected: 45, detail: 'Ongoing Houthi drone swarms targeting commercial hulls.' },
+      { id: 'c2', area: 'Persian Gulf', type: 'Oil Supply Chain', threat_level: 'High', ships_affected: 12, detail: 'Restricted transit near Strait of Hormuz due to naval drills.' },
+      { id: 'c3', area: 'Black Sea', type: 'Grain Logistics', threat_level: 'Medium', ships_affected: 8, detail: 'Mine clearance operations active near corridor terminals.' },
+      { id: 'c4', area: 'Gulf of Guinea', type: 'Anti-Piracy', threat_level: 'Medium', ships_affected: 5, detail: 'Boarding attempts reported near Nigeria EEZ boundary.' },
+    ];
+    res.json(conflicts);
+  });
+
+  // Corporate Intelligence (Scandals, Layoffs, Products)
+  app.get('/api/corporate-intel', (req, res) => {
+    const intel = [
+      { 
+        id: 1, 
+        company: "Maersk", 
+        category: "LAYOFFS", 
+        title: "Strategic Headcount Realignment", 
+        impact: "10,000 positions globally affected as AI-driven logistics nodes take over back-office operations.", 
+        date: "2026-04-12" 
+      },
+      { 
+        id: 2, 
+        company: "Evergreen Marine", 
+        category: "SCANDALS", 
+        title: "Ecological Liability Probe", 
+        impact: "Investigation launched into ballast water management protocols near sensitive biodiversity zones.", 
+        date: "2026-04-15" 
+      },
+      { 
+        id: 3, 
+        company: "ZIM Integrated", 
+        category: "PRODUCTS", 
+        title: "Z-Shield Digital Matrix", 
+        impact: "Launch of blockchain-verified trade compliance layer for handling high-risk cargo vectors.", 
+        date: "2026-04-10" 
+      },
+      { 
+        id: 4, 
+        company: "Hapag-Lloyd", 
+        category: "NEWS", 
+        title: "Terminal Acquisition in Brazil", 
+        impact: "Strategic expansion into Latin American logistics corridors to bypass central congestion points.", 
+        date: "2026-04-14" 
+      },
+      { 
+        id: 5, 
+        company: "CMA CGM", 
+        category: "SCANDALS", 
+        title: "Sanction Evasion Allegations", 
+        impact: "Regulatory audit of trans-shipment manifests at specific Free Trade Zones in the Middle East.", 
+        date: "2026-04-16" 
+      },
+      { 
+        id: 6, 
+        company: "HMM", 
+        category: "PRODUCTS", 
+        title: "HMM Algeciras Gen-3", 
+        impact: "Commissioning of the first fully autonomous 'Sailing Cloud' vessel for Trans-Pacific lanes.", 
+        date: "2026-04-08" 
+      }
+    ];
+    res.json(intel);
   });
 
   if (process.env.NODE_ENV !== 'production') {

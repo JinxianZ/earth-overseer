@@ -66,15 +66,18 @@ const CHART_DATA = [
 
 import GlobalShipMap from './GlobalShipMap';
 import StockTicker from './StockTicker';
+import GeopoliticalMonitor from './GeopoliticalMonitor';
+import MarketAnalytics from './MarketAnalytics';
+
+type AppTab = 'dashboard' | 'market' | 'geopolitical' | 'logistics';
 
 export default function Dashboard() {
   const [input, setInput] = useState<MacroInput>(HISTORICAL_SUEZ_MOCK);
   const [output, setOutput] = useState<MacroOutput | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'input' | 'output'>('input');
+  const [activeView, setActiveView] = useState<AppTab>('dashboard');
   const [logs, setLogs] = useState<string[]>(["[SYSTEM] Node initialized", "[SYSTEM] Awaiting ingestion..."]);
-  const [mapExpanded, setMapExpanded] = useState(false);
 
   const addLog = (msg: string) => {
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 9)]);
@@ -89,7 +92,6 @@ export default function Dashboard() {
     try {
       const result = await analyzeMacroRisk(input);
       setOutput(result);
-      setActiveTab('output');
       addLog("Synthesis complete. Arbitrage opportunity identified.");
     } catch (err: any) {
       setError(err.message || "Analysis failed");
@@ -108,19 +110,43 @@ export default function Dashboard() {
         </div>
 
         <nav className="flex flex-col gap-2">
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md bg-white/10 text-white font-semibold cursor-pointer">
+          <button 
+            onClick={() => setActiveView('dashboard')}
+            className={cn(
+              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
+              activeView === 'dashboard' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
+            )}
+          >
             <BarChart3 className="w-4 h-4" /> Dashboard
-          </div>
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors">
+          </button>
+          <button 
+            onClick={() => setActiveView('market')}
+            className={cn(
+              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
+              activeView === 'market' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
+            )}
+          >
             <Activity className="w-4 h-4" /> Market Pulse
-          </div>
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors">
+          </button>
+          <button 
+            onClick={() => setActiveView('geopolitical')}
+            className={cn(
+              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
+              activeView === 'geopolitical' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
+            )}
+          >
             <Globe className="w-4 h-4" /> Geopolitical Monitor
-          </div>
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors">
+          </button>
+          <button 
+            onClick={() => setActiveView('logistics')}
+            className={cn(
+              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
+              activeView === 'logistics' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
+            )}
+          >
             <Truck className="w-4 h-4" /> Logistics Matrix
-          </div>
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors">
+          </button>
+          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors opacity-50">
             <RefreshCw className="w-4 h-4" /> Backtesting Lab
           </div>
         </nav>
@@ -136,163 +162,209 @@ export default function Dashboard() {
         </div>
       </aside>
 
-      {/* Main Content Area (Center + Right) */}
-      <div className="flex-1 flex overflow-hidden">
-        <main className="flex-1 p-6 grid grid-rows-[auto_1fr] gap-6 overflow-hidden">
-          {/* Header */}
-          <div className="header border-b border-[var(--border)] pb-4 flex justify-between items-end">
-            <div className="header-title">
-              <h1 className="text-2xl font-bold text-[#0f172a]">Strategic Arbitrage Node</h1>
-              <p className="text-[var(--text-muted)] text-sm">Synthesizing global anomalies into actionable capital flows.</p>
-            </div>
-            <div className="status-chip">
-              <div className="status-indicator animate-pulse"></div>
-              Live Data Sync: 0.04s Latency
-            </div>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header - Unified */}
+        <header className="p-6 border-b border-[var(--border)] bg-white/50 backdrop-blur-md flex justify-between items-end">
+          <div className="header-title">
+            <h1 className="text-2xl font-bold text-[#0f172a] capitalize">{activeView} Intelligence Node</h1>
+            <p className="text-[var(--text-muted)] text-sm">
+              {activeView === 'dashboard' ? "Synthesizing global anomalies into actionable capital flows." : 
+               activeView === 'geopolitical' ? "Monitoring strategic conflict zones and high-impact news vectors." :
+               "High-frequency data streams and logistical matrix oversight."}
+            </p>
           </div>
+          <div className="status-chip">
+            <div className="status-indicator animate-pulse"></div>
+            Vector Stream: Active
+          </div>
+        </header>
 
-          {/* Grid Container */}
-          <div className="grid grid-cols-[1fr_1.2fr] grid-rows-[1fr_1fr] gap-5 overflow-hidden">
-          {!output && !loading && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center opacity-20 pointer-events-none">
-              <Globe className="w-48 h-48 mb-6" />
-              <h2 className="text-3xl font-serif italic mb-2">Awaiting Data Ingestion</h2>
-              <p className="max-w-md font-mono text-sm leading-relaxed">
-                Node is currently in IDLE state. Use the Ingestion Panel to feed geopolitical and logistical vectors for synthesis.
-              </p>
-            </div>
-          )}
-
-          <div className="card overflow-hidden">
-            <div className="card-title">
-              <span>Multimodal Global Ingest</span>
-              <span className="text-[var(--accent)]">{input.geopolitical_data.length + input.corporate_scandals.length} New Alerts</span>
-            </div>
-            <ul className="flex flex-col gap-2.5 overflow-y-auto pr-1">
-              {input.geopolitical_data.map((item, idx) => (
-                <li key={`geo-${idx}`} className="p-2.5 rounded bg-[#f1f5f9] text-xs border-l-[3px] border-[var(--danger)] bg-[#fef2f2]">
-                  <strong>GEOPOLITICAL:</strong> {item.event} in {item.location}.
-                </li>
-              ))}
-              {input.market_data.map((item, idx) => (
-                <li key={`market-${idx}`} className="p-2.5 rounded bg-[#f1f5f9] text-xs border-l-[3px] border-[var(--accent)]">
-                  <strong>MARKET:</strong> {item.ticker} price volatility spike. Current: {item.price}.
-                </li>
-              ))}
-              <li className="flex-1 flex flex-col justify-end pt-2">
-                 <button 
-                  onClick={handleAnalyze}
-                  disabled={loading}
-                  className="w-full py-2 bg-[var(--accent)] text-white rounded text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-opacity"
+        <div className="flex-1 flex overflow-hidden">
+          {/* Active View Content */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <AnimatePresence mode="wait">
+              {activeView === 'dashboard' && (
+                <motion.main 
+                  key="dashboard"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex-1 p-6 grid grid-cols-[1fr_1.2fr] grid-rows-[1fr_1fr] gap-5 overflow-hidden"
                 >
-                  {loading ? "Synthesizing..." : "Run Analysis Node"}
-                </button>
-              </li>
-            </ul>
-          </div>
+                  <div className="card overflow-hidden">
+                    <div className="card-title">
+                      <span>Multimodal Global Ingest</span>
+                      <span className="text-[var(--accent)]">{input.geopolitical_data.length + input.corporate_scandals.length} New Alerts</span>
+                    </div>
+                    <ul className="flex flex-col gap-2.5 overflow-y-auto pr-1">
+                      {input.geopolitical_data.map((item, idx) => (
+                        <li key={`geo-${idx}`} className="p-2.5 rounded text-xs border-l-[3px] border-[var(--danger)] bg-[#fef2f2]">
+                          <strong>GEOPOLITICAL:</strong> {item.event} in {item.location}.
+                        </li>
+                      ))}
+                      {input.market_data.map((item, idx) => (
+                        <li key={`market-${idx}`} className="p-2.5 rounded text-xs border-l-[3px] border-[var(--accent)] bg-[#f1f5f9]">
+                          <strong>MARKET:</strong> {item.ticker} price volatility spike. Current: {item.price}.
+                        </li>
+                      ))}
+                      <li className="flex-1 flex flex-col justify-end pt-2">
+                         <button 
+                          onClick={handleAnalyze}
+                          disabled={loading}
+                          className="w-full py-2 bg-[var(--accent)] text-white rounded text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-opacity"
+                        >
+                          {loading ? "Synthesizing..." : "Run Analysis Node"}
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
 
-          {/* Card 2: Arbitrage Opportunity Synthesis */}
-          <div className="card overflow-hidden">
-            <div className="card-title">Arbitrage Opportunity Synthesis</div>
-            {output ? (
-              <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
-                <div className="text-sm leading-relaxed text-[#334155] italic border-l-2 border-[#cbd5e1] pl-3 italic">
-                  {output.arbitrage_opportunity}
-                </div>
-                <div className="grid grid-cols-2 gap-3 mt-auto">
-                  <div className="execution-cell">
-                    <div className="cell-label">Financial Action</div>
-                    <div className={cn("cell-value uppercase", output.financial_execution.action === 'LONG' ? "text-[var(--success)]" : "text-[var(--danger)]")}>
-                      {output.financial_execution.action}
+                  {/* Card 2: Arbitrage Opportunity Synthesis */}
+                  <div className="card overflow-hidden">
+                    <div className="card-title">Arbitrage Opportunity Synthesis</div>
+                    {output ? (
+                      <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
+                        <div className="text-sm leading-relaxed text-[#334155] border-l-2 border-[#cbd5e1] pl-3 italic">
+                          {output.arbitrage_opportunity}
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 mt-auto">
+                          <div className="execution-cell">
+                            <div className="cell-label">Financial Action</div>
+                            <div className={cn("cell-value uppercase", output.financial_execution.action === 'LONG' ? "text-[var(--success)]" : "text-[var(--danger)]")}>
+                              {output.financial_execution.action}
+                            </div>
+                          </div>
+                          <div className="execution-cell">
+                            <div className="cell-label">Asset Ticker</div>
+                            <div className="cell-value">${output.financial_execution.asset_ticker}</div>
+                          </div>
+                          <div className="execution-cell">
+                            <div className="cell-label">Logistical Action</div>
+                            <div className="cell-value text-[var(--warning)]">{output.logistical_execution.action}</div>
+                          </div>
+                          <div className="execution-cell">
+                            <div className="cell-label">Entry Catalyst</div>
+                            <div className="cell-value !text-[12px]">{output.financial_execution.entry_catalyst}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col items-center justify-center opacity-30 text-center space-y-4">
+                        <ShieldAlert className="w-12 h-12" />
+                        <p className="text-xs uppercase font-bold tracking-widest">Awaiting Synthesis Output</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card 3: Risk Exposure Analysis */}
+                  <div className="card overflow-hidden">
+                    <div className="card-title">Risk Exposure Analysis</div>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex justify-between items-center">
+                        <div className="text-[13px] text-[var(--text-muted)]">Geopolitical Contagion</div>
+                        <div className="stat-bar">
+                          <div className="stat-fill bg-[var(--danger)]" style={{ width: '88%' }}></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-[13px] text-[var(--text-muted)]">Regulatory Counter-Action</div>
+                        <div className="stat-bar">
+                          <div className="stat-fill bg-[var(--warning)]" style={{ width: '45%' }}></div>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-[13px] text-[var(--text-muted)]">Liquidity Depth Variance</div>
+                        <div className="stat-bar">
+                          <div className="stat-fill" style={{ width: '22%' }}></div>
+                        </div>
+                      </div>
+                      {output && (
+                        <div className="text-[11px] text-[var(--text-muted)] mt-2 pt-3 border-t border-[var(--border)] leading-tight italic">
+                          Primary Downside: {output.risk_exposure}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="execution-cell">
-                    <div className="cell-label">Asset Ticker</div>
-                    <div className="cell-value">${output.financial_execution.asset_ticker}</div>
-                  </div>
-                  <div className="execution-cell">
-                    <div className="cell-label">Logistical Action</div>
-                    <div className="cell-value text-[var(--warning)]">{output.logistical_execution.action}</div>
-                  </div>
-                  <div className="execution-cell">
-                    <div className="cell-label">Entry Catalyst</div>
-                    <div className="cell-value !text-[12px]">{output.financial_execution.entry_catalyst}</div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col items-center justify-center opacity-30 text-center space-y-4">
-                <ShieldAlert className="w-12 h-12" />
-                <p className="text-xs uppercase font-bold tracking-widest">Awaiting Synthesis Output</p>
-              </div>
-            )}
-          </div>
 
-          {/* Card 3: Risk Exposure Analysis */}
-          <div className="card overflow-hidden">
-            <div className="card-title">Risk Exposure Analysis</div>
-            <div className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <div className="text-[13px] text-[var(--text-muted)]">Geopolitical Contagion</div>
-                <div className="stat-bar">
-                  <div className="stat-fill bg-[var(--danger)]" style={{ width: '88%' }}></div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-[13px] text-[var(--text-muted)]">Regulatory Counter-Action</div>
-                <div className="stat-bar">
-                  <div className="stat-fill bg-[var(--warning)]" style={{ width: '45%' }}></div>
-                </div>
-              </div>
-              <div className="flex justify-between items-center">
-                <div className="text-[13px] text-[var(--text-muted)]">Liquidity Depth Variance</div>
-                <div className="stat-bar">
-                  <div className="stat-fill" style={{ width: '22%' }}></div>
-                </div>
-              </div>
-              {output && (
-                <div className="text-[11px] text-[var(--text-muted)] mt-2 pt-3 border-t border-[var(--border)] leading-tight italic">
-                  Primary Downside: {output.risk_exposure}
+                  {/* Card 4: Logistical Execution Vector */}
+                  <div className="card overflow-hidden">
+                    <motion.div 
+                      whileHover={{ scale: 1.02, x: 5 }}
+                      onClick={() => setActiveView('logistics')}
+                      className="cursor-pointer group flex items-center gap-2 mb-2"
+                    >
+                      <div className="text-xs font-black uppercase tracking-tighter text-[#0f172a] group-hover:text-[var(--accent)] transition-colors">
+                        Live Global AIS Maritime Feed
+                      </div>
+                      <ChevronRight className="w-3 h-3 text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-all" />
+                    </motion.div>
+                    <div className="flex-1 min-h-[140px] relative group overflow-hidden">
+                       <GlobalShipMap />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 mt-3">
+                      <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
+                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Target Commodity</div>
+                        <strong className="block truncate">{output?.logistical_execution.target_commodity || "Petro-Natural Gas"}</strong>
+                      </div>
+                      <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
+                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Geo-Focus</div>
+                        <strong className="block truncate">{output?.logistical_execution.geographic_focus || "Global South"}</strong>
+                      </div>
+                    </div>
+                  </div>
+                </motion.main>
+              )}
+
+              {activeView === 'geopolitical' && (
+                <motion.div
+                  key="geopolitical"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="flex-1 flex overflow-hidden"
+                >
+                  <GeopoliticalMonitor />
+                </motion.div>
+              )}
+
+              {activeView === 'logistics' && (
+                <motion.div
+                  key="logistics"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="flex-1 flex flex-col overflow-hidden"
+                >
+                  <GlobalShipMap isExpanded />
+                </motion.div>
+              )}
+
+              {activeView === 'market' && (
+                <motion.div
+                  key="market"
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  className="flex-1 flex overflow-hidden"
+                >
+                  <MarketAnalytics />
+                </motion.div>
+              )}
+
+              {activeView !== 'dashboard' && activeView !== 'geopolitical' && activeView !== 'logistics' && activeView !== 'market' && (
+                <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] font-mono text-sm">
+                  VECTOR_NODE [{activeView}] UNDER_MAINTENANCE...
                 </div>
               )}
-            </div>
+            </AnimatePresence>
           </div>
 
-          {/* Card 4: Logistical Execution Vector */}
-          <div className="card overflow-hidden">
-            <div className="card-title">Logistical Execution Vector</div>
-            <div className="text-xs font-semibold text-[var(--text-main)] mb-2">Live Global AIS Maritime Feed</div>
-            <div className="flex-1 min-h-[140px] relative overflow-hidden group">
-               <GlobalShipMap 
-                 isExpanded={mapExpanded} 
-                 onToggleExpand={() => setMapExpanded(!mapExpanded)} 
-               />
-               {/* Click-away backdrop for expanded state */}
-               {mapExpanded && (
-                 <div 
-                   className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[90]" 
-                   onClick={() => setMapExpanded(false)}
-                 />
-               )}
-            </div>
-            <div className="grid grid-cols-2 gap-2 mt-3">
-              <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
-                <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Target Commodity</div>
-                <strong className="block truncate">{output?.logistical_execution.target_commodity || "Petro-Natural Gas"}</strong>
-              </div>
-              <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
-                <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Geo-Focus</div>
-                <strong className="block truncate">{output?.logistical_execution.geographic_focus || "Global South"}</strong>
-              </div>
-            </div>
-          </div>
+          {/* Right Sidebar - Stock Ticker */}
+          <aside className="w-[180px] flex-shrink-0 border-l border-[var(--border)] bg-white/30 backdrop-blur-sm">
+            <StockTicker />
+          </aside>
         </div>
-      </main>
-
-        {/* Right Sidebar - Stock Ticker */}
-        <aside className="w-[180px] flex-shrink-0 border-l border-[var(--border)]">
-          <StockTicker />
-        </aside>
       </div>
     </div>
   );
