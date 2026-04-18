@@ -139,35 +139,46 @@ export default function GeopoliticalMonitor() {
   };
 
   const fetchData = async () => {
-    try {
-      const [newsRes, conflictRes] = await Promise.all([
-        fetch('/api/news'),
-        fetch('/api/conflicts')
-      ]);
-      const newsData = await newsRes.json();
-      const conflictData = await conflictRes.json();
-      
-      setConflicts(conflictData);
+  try {
+    const [newsRes, conflictRes] = await Promise.all([
+      fetch('/api/news'),
+      fetch('/api/conflicts')
+    ]);
 
-      // Only seed initial news if empty
-      setNews(prev => {
-        if (prev.length === 0) {
-           return newsData.map((n: any) => ({ ...n, interestScore: 80 }));
-        }
-        return prev;
-      });
-
-      // Trigger AI synthesis to augment news
-      if (conflictData.length > 0) {
-        synthesizeAdvancedIntel(conflictData, news);
-      }
-    } catch (err) {
-      console.error('Failed to fetch geopolitical monitor data');
-    } finally {
+    if (!newsRes.ok) {
+      console.error(`News API failed: ${newsRes.status}`);
       setLoading(false);
+      return;
     }
-  };
 
+    if (!conflictRes.ok) {
+      console.error(`Conflicts API failed: ${conflictRes.status}`);
+      setLoading(false);
+      return;
+    }
+
+    const newsData = await newsRes.json();
+    const conflictData = await conflictRes.json();
+    
+    setConflicts(conflictData);
+
+    setNews(prev => {
+      if (prev.length === 0) {
+        return newsData.map((n: any) => ({ ...n, interestScore: 80 }));
+      }
+      return prev;
+    });
+
+    if (conflictData.length > 0) {
+      synthesizeAdvancedIntel(conflictData, newsData);
+    }
+  } catch (err) {
+    console.error('Failed to fetch geopolitical monitor data:', err);
+  } finally {
+    setLoading(false);
+  }
+};
+  
   useEffect(() => {
     fetchData();
     // Poll every 60 seconds for new AI-synthesized intelligence
