@@ -1,5 +1,5 @@
+import { GoogleGenAI, Type } from "@google/genai";
 import { MacroInput, MacroOutput } from "./types";
-import { Type } from "@google/genai";
 
 const SYSTEM_PROMPT = `You are the Orchestrator Node of a global macroeconomic arbitrage and risk network. Your objective is to ingest multimodal global data feeds, identify geopolitical, environmental, and corporate anomalies, and output actionable arbitrage strategies for financial and logistical profit.
 
@@ -46,23 +46,55 @@ const RESPONSE_SCHEMA = {
   required: ["event_synthesis", "arbitrage_opportunity", "financial_execution", "logistical_execution", "risk_exposure"]
 };
 
-export async function analyzeMacroRisk(input: MacroInput): Promise<MacroOutput> {
-  const response = await fetch('/api/ai/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: JSON.stringify(input, null, 2),
-      systemInstruction: SYSTEM_PROMPT,
-      responseSchema: RESPONSE_SCHEMA
-    })
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "AI Analysis Failed");
+// Safety settings to allow discussion of conflict/scandal as requested
+const SAFETY_SETTINGS = [
+  { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+  { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" }
+];
+
+let aiClient: GoogleGenAI | null = null;
+
+function getAI() {
+  if (!aiClient) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      throw new Error("GEMINI_API_KEY is not defined");
+    }
+    aiClient = new GoogleGenAI({ apiKey });
   }
+  return aiClient;
+}
+
+export async function analyzeMacroRisk(input: MacroInput): Promise<MacroOutput> {
+  const ai = getAI();
   
-  return response.json();
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: [
+        { role: 'user', parts: [{ text: JSON.stringify(input, null, 2) }] }
+      ],
+      config: {
+        systemInstruction: SYSTEM_PROMPT,
+        temperature: 0.1,
+        responseMimeType: "application/json",
+        responseSchema: RESPONSE_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("No response from AI");
+    }
+
+    return JSON.parse(response.text) as MacroOutput;
+  } catch (error) {
+    console.error("AI Analysis Error:", error);
+    throw error;
+  }
 }
 
 export interface GeopoliticalIntel {
@@ -74,6 +106,8 @@ export interface GeopoliticalIntel {
 }
 
 export async function synthesizeGeopoliticalIntel(context: string): Promise<GeopoliticalIntel[]> {
+  const ai = getAI();
+  
   const SYNTHESIS_PROMPT = `You are a Geopolitical Intelligence Synthesizer. 
 Using the GOOGLE SEARCH tool, find 4 ACTUAL, REAL-WORLD news articles/events that occurred between February 2026 and April 2026.
 
@@ -101,45 +135,54 @@ STRICT FILTERING & PRIORITIZATION:
     }
   };
 
-  const response = await fetch('/api/ai/synthesize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: SYNTHESIS_PROMPT,
-      responseSchema: SYNTHESIS_SCHEMA
-    })
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Synthesis Failed");
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: SYNTHESIS_PROMPT,
+      config: {
+        tools: [{ googleSearch: {} }],
+        responseMimeType: "application/json",
+        responseSchema: SYNTHESIS_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("Synthesis failed");
+    }
+
+    return JSON.parse(response.text) as GeopoliticalIntel[];
+  } catch (error) {
+    console.error("Geopolitical Synthesis Error:", error);
+    throw error;
   }
-  
-  return response.json();
 }
 
 export async function generalQuantChat(message: string): Promise<string> {
+  const ai = getAI();
+  
   const CHAT_INSTRUCTION = `You are 'QUANT-01', a high-frequency trading analyst for a geopolitical hedge fund. 
 Your tone is cold, precise, and technical. 
 Focus on arbitrage, risk vectors, and supply chain disruptions. 
 Keep responses concise (max 3 sentences). 
 Refer to market data in terms of 'volatility indices' and 'structural friction'.`;
 
-  const response = await fetch('/api/ai/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      message,
-      systemInstruction: CHAT_INSTRUCTION
-    })
-  });
-  
-  if (!response.ok) {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: message,
+      config: {
+        systemInstruction: CHAT_INSTRUCTION,
+        temperature: 0.7,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    return response.text || "SYSTEM_ERROR: Neural sequence interrupted.";
+  } catch (error) {
+    console.error("Quant Chat Error:", error);
     return "CRITICAL_ERROR: Connection to HFT node terminated.";
   }
-  
-  const data = await response.json();
-  return data.text;
 }
 
 export interface FactCheckResult {
@@ -151,6 +194,8 @@ export interface FactCheckResult {
 }
 
 export async function verifyFact(claimOrUrl: string): Promise<FactCheckResult> {
+  const ai = getAI();
+  
   const VERIFICATION_PROMPT = `You are a high-fidelity Fact-Checking Intelligence Agent. 
 Input: A claim or a URL.
 Mission: Perform extensive web research to verify the veracity of the input.
@@ -187,22 +232,37 @@ Constraints:
     required: ["is_likely_fake", "verdict_summary", "reasoning", "warning_signs", "sources"]
   };
 
-  const response = await fetch('/api/ai/fact-check', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: claimOrUrl,
-      systemInstruction: VERIFICATION_PROMPT,
-      responseSchema: VERIFICATION_SCHEMA
-    })
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Fact Check Failed");
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        { role: 'user', parts: [{ text: claimOrUrl }] }
+      ],
+      config: {
+        tools: [{ googleSearch: {} }],
+        systemInstruction: VERIFICATION_PROMPT,
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: VERIFICATION_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("No response from Verification Node");
+    }
+
+    const result = JSON.parse(response.text) as FactCheckResult;
+    
+    // Supplement with grounding metadata if available and not already in sources
+    const groundingSources = response.candidates?.[0]?.groundingMetadata?.searchEntryPoint?.renderedContent;
+    // Note: The specific format of groundingMetadata can vary, but the schema returned by the model should be prioritized.
+    
+    return result;
+  } catch (error) {
+    console.error("Fact Check Error:", error);
+    throw error;
   }
-  
-  return response.json();
 }
 
 export interface FutureProjection {
@@ -216,6 +276,8 @@ export interface FutureProjection {
 }
 
 export async function projectFutureState(context: MacroInput, horizon: number): Promise<FutureProjection> {
+  const ai = getAI();
+  
   const PROJECTION_PROMPT = `You are the 'PREDICTIVE_ORACLE' Node. 
 Target Time Horizon: ${horizon} hours into the future.
 
@@ -243,20 +305,28 @@ Output MUST be a single high-fidelity projection.`;
     required: ["headline", "probability", "market_impact", "geopolitical_shift", "recommended_hedge", "reasoning", "detailed_explanation"]
   };
 
-  const response = await fetch('/api/ai/simulate', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: `CONTEXT: ${JSON.stringify(context, null, 2)}\n\nTIME_HORIZON: ${horizon}h`,
-      systemInstruction: PROJECTION_PROMPT,
-      responseSchema: PROJECTION_SCHEMA
-    })
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || "Simulation Failed");
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        { role: 'user', parts: [{ text: `CONTEXT: ${JSON.stringify(context, null, 2)}\n\nTIME_HORIZON: ${horizon}h` }] }
+      ],
+      config: {
+        systemInstruction: PROJECTION_PROMPT,
+        temperature: 0.4,
+        responseMimeType: "application/json",
+        responseSchema: PROJECTION_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("Projection failed");
+    }
+
+    return JSON.parse(response.text) as FutureProjection;
+  } catch (error) {
+    console.error("Future Projection Error:", error);
+    throw error;
   }
-  
-  return response.json();
 }
