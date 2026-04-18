@@ -4,6 +4,7 @@ import path from 'path';
 // @ts-ignore
 import * as yfModule from 'yahoo-finance2';
 import 'dotenv/config';
+import { GoogleGenAI, Type } from "@google/genai";
 
 // Robust initialization for yahoo-finance2 v3+
 const YahooFinance = (yfModule as any).YahooFinance || 
@@ -20,6 +21,8 @@ if (!yf || typeof yf.search !== 'function') {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+
+  app.use(express.json());
 
   console.log('[SERVER] Initializing Strategic Orchestrator backend...');
 
@@ -252,6 +255,151 @@ async function startServer() {
       }
     ];
     res.json(intel);
+  });
+
+  // --- AI PROXY ENDPOINTS ---
+  let aiClient: GoogleGenAI | null = null;
+  function getAI() {
+    if (!aiClient) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error('GEMINI_API_KEY missing from environment');
+      aiClient = new GoogleGenAI({ apiKey });
+    }
+    return aiClient;
+  }
+
+  const SAFETY_SETTINGS = [
+    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+    { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_NONE" }
+  ];
+
+  app.post('/api/ai/analyze', async (req, res) => {
+    try {
+      const ai = getAI();
+      const prompt = req.body.prompt;
+      const systemInstruction = req.body.systemInstruction;
+      const responseSchema = req.body.responseSchema;
+
+      const result = await (ai as any).models.generateContent({
+        model: "gemini-3.1-pro-preview",
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.1,
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+        },
+        safetySettings: SAFETY_SETTINGS as any,
+      });
+
+      res.json(JSON.parse(result.text));
+    } catch (error: any) {
+      console.error('AI Analyze Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/ai/simulate', async (req, res) => {
+    try {
+      const ai = getAI();
+      const prompt = req.body.prompt;
+      const systemInstruction = req.body.systemInstruction;
+      const responseSchema = req.body.responseSchema;
+
+      const result = await (ai as any).models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.4,
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+        },
+        safetySettings: SAFETY_SETTINGS as any,
+      });
+
+      res.json(JSON.parse(result.text));
+    } catch (error: any) {
+      console.error('AI Simulation Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/ai/chat', async (req, res) => {
+    try {
+      const ai = getAI();
+      const message = req.body.message;
+      const systemInstruction = req.body.systemInstruction;
+
+      const result = await (ai as any).models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: 'user', parts: [{ text: message }] }],
+        config: {
+          systemInstruction,
+          temperature: 0.7,
+        },
+        safetySettings: SAFETY_SETTINGS as any,
+      });
+
+      res.json({ text: result.text });
+    } catch (error: any) {
+      console.error('AI Chat Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/ai/fact-check', async (req, res) => {
+    try {
+      const ai = getAI();
+      const prompt = req.body.prompt;
+      const systemInstruction = req.body.systemInstruction;
+      const responseSchema = req.body.responseSchema;
+
+      const result = await (ai as any).models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          tools: [{ googleSearch: {} } as any],
+          systemInstruction,
+          temperature: 0.2,
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+        },
+        safetySettings: SAFETY_SETTINGS as any,
+      });
+
+      res.json(JSON.parse(result.text));
+    } catch (error: any) {
+      console.error('AI Fact Check Error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.post('/api/ai/synthesize', async (req, res) => {
+    try {
+      const ai = getAI();
+      const prompt = req.body.prompt;
+      const responseSchema = req.body.responseSchema;
+
+      const result = await (ai as any).models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        config: {
+          tools: [{ googleSearch: {} } as any],
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+        },
+        safetySettings: SAFETY_SETTINGS as any,
+      });
+
+      res.json(JSON.parse(result.text));
+    } catch (error: any) {
+      console.error('AI Synthesize Error:', error);
+      res.status(500).json({ error: error.message });
+    }
   });
 
   // Yahoo Finance / News Ingest
