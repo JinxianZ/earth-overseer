@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Courier New", ui-monospace, SFMono-Regular, monospace;
+}
+
+:root {
+  --bg: #f8fafc;
+  --sidebar: #0f172a;
+  --card-bg: #ffffff;
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --accent: #2563eb;
+  --success: #059669;
+  --danger: #dc2626;
+  --warning: #d97706;
+  --border: #e2e8f0;
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--bg)] text-[var(--text-main)] font-sans;
+  }
+}
+
+.card {
+  @apply bg-[var(--card-bg)] border border-[var(--border)] rounded-lg p-[18px] flex flex-col shadow-sm;
+}
+
+.card-title {
+  @apply text-[11px] font-bold uppercase text-[var(--text-muted)] tracking-wider mb-3 flex justify-between items-center;
+}
+
+.status-chip {
+  @apply bg-[#ecfdf5] text-[var(--success)] px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-2;
+}
+
+.status-indicator {
+  @apply w-2 h-2 bg-[var(--success)] rounded-full;
+}
+
+.execution-cell {
+  @apply p-3 bg-[#f8fafc] border border-[var(--border)] rounded-md;
+}
+
+.cell-label {
+  @apply text-[10px] text-[var(--text-muted)] uppercase mb-1;
+}
+
+.cell-value {
+  @apply text-base font-bold font-mono;
+}
+
+.stat-bar {
+  @apply w-[120px] h-1.5 bg-[#e2e8f0] rounded-full relative overflow-hidden;
+}
+
+.stat-fill {
+  @apply h-full bg-[var(--accent)] rounded-full;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-[#cbd5e1] rounded-full hover:bg-[#94a3b8] transition-colors;
+}
