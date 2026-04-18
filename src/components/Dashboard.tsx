@@ -129,10 +129,10 @@ const OrbitalNav = ({
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setActiveView('dashboard')}
-        className="relative z-20 w-32 h-32 rounded-full cursor-pointer group shadow-[0_0_50px_rgba(56,189,248,0.1)]"
+        className="relative z-20 w-32 h-32 rounded-full cursor-pointer group shadow-[0_0_50px_var(--accent)]"
         style={{
-          background: "radial-gradient(circle at 35% 35%, #1e3a8a 0%, #0f172a 100%)",
-          boxShadow: "inset -10px -10px 40px rgba(0,0,0,0.8), inset 10px 10px 40px rgba(255,255,255,0.1), 0 0 30px rgba(56,189,248,0.2)"
+          background: "radial-gradient(circle at 35% 35%, var(--accent) 0%, var(--bg) 100%)",
+          boxShadow: "inset -10px -10px 40px rgba(0,0,0,0.5), inset 10px 10px 40px rgba(255,255,255,0.1), 0 0 30px var(--accent)"
         }}
       >
         {/* Globe Atmosphere/Glow */}
@@ -193,10 +193,10 @@ const OrbitalNav = ({
             whileTap={{ scale: 0.9 }}
             onClick={() => setActiveView(tab.id)}
             className={cn(
-              "absolute z-30 w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all border shadow-lg",
+              "absolute z-30 w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all border shadow-lg backdrop-blur-md",
               activeView === tab.id 
-                ? "bg-[#38bdf8] text-white border-[#38bdf8] shadow-[#38bdf8]/40" 
-                : "bg-[#1e293b] text-[#94a3b8] border-[#334155] hover:border-[#38bdf8] hover:text-white"
+                ? "bg-[var(--accent)] text-black border-[var(--accent)] shadow-[var(--accent)]/40" 
+                : "bg-black/60 text-[var(--text-muted)] border-white/10 hover:border-[var(--accent)] hover:text-white"
             )}
           >
             <tab.icon className="w-4 h-4" />
@@ -216,6 +216,12 @@ export default function Dashboard() {
   const [activeView, setActiveView] = useState<AppTab>('dashboard');
   const [logs, setLogs] = useState<string[]>(["[SYSTEM] Node initialized", "[SYSTEM] Awaiting ingestion..."]);
   const [yahooData, setYahooData] = useState<YahooData | null>(null);
+  const [theme, setTheme] = useState(() => localStorage.getItem('app-theme') || 'dark');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const fetchYahoo = async () => {
@@ -263,14 +269,14 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] font-sans flex w-full h-screen overflow-hidden">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] font-sans flex w-full h-screen overflow-hidden transition-colors duration-500" data-theme={theme}>
       {/* Sidebar - Redesigned to Orbital Command Hub */}
-      <aside className="w-[300px] bg-[#0c121e] text-white p-6 flex flex-col gap-8 flex-shrink-0 border-r border-white/5 relative overflow-hidden">
+      <aside className="w-[300px] bg-[var(--sidebar)] text-[var(--text-main)] p-6 flex flex-col gap-8 flex-shrink-0 border-r border-white/5 relative overflow-hidden transition-colors duration-500">
         {/* Background circuit pattern */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/micro-carbon.png')]" />
         
         <div className="relative z-10 flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3 font-extrabold text-sm tracking-widest text-[#38bdf8] uppercase">
+            <div className="flex items-center gap-3 font-extrabold text-sm tracking-widest text-[var(--accent)] uppercase">
                 <span className="text-xl italic font-serif">◈</span> Node_04
             </div>
             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20">
@@ -285,9 +291,51 @@ export default function Dashboard() {
             </div>
 
             <div className="px-2">
-                <div className="mb-4 font-black uppercase tracking-widest text-[10px] text-[#475569] flex items-center justify-between">
+                <div className="mb-4 font-black uppercase tracking-widest text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>Aesthetic Modules</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {[
+                        { id: 'dark', label: 'VOID', border: '#38bdf8' },
+                        { id: 'light', label: 'CLEAN', border: '#2563eb' },
+                        { id: 'pink', label: 'NEON', border: '#db2777' },
+                        { id: 'matrix', label: 'GLITCH', border: '#00ff41' }
+                    ].map((t) => (
+                        <button
+                            key={t.id}
+                            onClick={() => setTheme(t.id)}
+                            className={cn(
+                                "flex-1 min-w-[50px] p-2 rounded border transition-all flex flex-col items-center gap-1 group relative overflow-hidden",
+                                theme === t.id 
+                                    ? "bg-white/10 border-[var(--accent)]" 
+                                    : "bg-white/5 border-white/5 hover:border-white/20"
+                            )}
+                        >
+                            <div 
+                                className="w-full h-1 rounded-full mb-1" 
+                                style={{ backgroundColor: t.border }}
+                            />
+                            <span className={cn(
+                                "text-[7px] font-black tracking-widest uppercase",
+                                theme === t.id ? "text-[var(--text-main)]" : "text-slate-500"
+                            )}>
+                                {t.label}
+                            </span>
+                            {theme === t.id && (
+                                <motion.div 
+                                    layoutId="theme-ring"
+                                    className="absolute inset-0 border border-[var(--accent)] opacity-50 rounded"
+                                />
+                            )}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="px-2">
+                <div className="mb-4 font-black uppercase tracking-widest text-[10px] text-slate-500 flex items-center justify-between">
                     <span>Active Telemetry</span>
-                    <RefreshCw className="w-2.5 h-2.5 animate-spin text-[#38bdf8]" />
+                    <RefreshCw className="w-2.5 h-2.5 animate-spin text-[var(--accent)]" />
                 </div>
                 <div className="space-y-3">
                     {logs.slice(0, 4).map((log, i) => (
@@ -295,7 +343,7 @@ export default function Dashboard() {
                             key={i}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="p-2 bg-white/5 rounded border border-white/5 font-mono text-[9px] text-[#94a3b8] leading-tight"
+                            className="p-2 bg-white/5 rounded border border-white/5 font-mono text-[9px] text-slate-400 leading-tight"
                         >
                             {log}
                         </motion.div>
@@ -304,13 +352,13 @@ export default function Dashboard() {
             </div>
         </div>
 
-        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 text-[9px] text-[#475569]">
+        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 text-[9px] text-slate-500">
           <div className="mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
             <Lock className="w-2.5 h-2.5" /> Security Protocol V2
           </div>
           <div className="font-mono opacity-80 space-y-1">
-             <div className="flex justify-between"><span>NODE_ID:</span> <span className="text-white">AIS_37_Ω</span></div>
-             <div className="flex justify-between"><span>DIST:</span> <span className="text-white">ENCRYPTED</span></div>
+             <div className="flex justify-between"><span>NODE_ID:</span> <span className="text-[var(--text-main)]">AIS_37_Ω</span></div>
+             <div className="flex justify-between"><span>DIST:</span> <span className="text-[var(--text-main)]">ENCRYPTED</span></div>
              <div className="flex justify-between"><span>SAFETY:</span> <span className="text-emerald-500">NOMINAL</span></div>
           </div>
         </div>
@@ -319,10 +367,10 @@ export default function Dashboard() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header - Unified */}
-        <header className="p-6 border-b border-[var(--border)] bg-white/50 backdrop-blur-md flex justify-between items-end">
+        <header className="p-6 border-b border-[var(--border)] bg-white/5 backdrop-blur-xl flex justify-between items-end">
           <div className="header-title">
-            <h1 className="text-2xl font-bold text-[#0f172a] capitalize">{activeView} Intelligence Node</h1>
-            <p className="text-[var(--text-muted)] text-sm">
+            <h1 className="text-2xl font-black text-white capitalize italic tracking-tight">{activeView} Intelligence Node</h1>
+            <p className="text-[var(--text-muted)] text-[10px] uppercase font-mono tracking-widest mt-1">
               {activeView === 'dashboard' ? "Synthesizing global anomalies into actionable capital flows." : 
                activeView === 'geopolitical' ? "Monitoring strategic conflict zones and high-impact news vectors." :
                "High-frequency data streams and logistical matrix oversight."}
@@ -373,9 +421,9 @@ export default function Dashboard() {
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ delay: idx * 0.05 }}
                             whileHover={{ scale: 1.05, borderLeft: '4px solid var(--accent)' }}
-                            className="p-2 bg-slate-50 border border-slate-100 rounded text-[10px] flex justify-between items-center"
+                            className="p-2 bg-white/5 border border-white/5 rounded text-[10px] flex justify-between items-center"
                           >
-                            <span className="font-bold text-[#475569]">{ind.symbol}</span>
+                            <span className="font-bold text-slate-400">{ind.symbol}</span>
                             <span className={cn(
                               "font-mono font-black",
                               ind.changePercent >= 0 ? "text-emerald-500" : "text-rose-500"
@@ -395,13 +443,13 @@ export default function Dashboard() {
                             animate={{ x: 0, opacity: 1 }}
                             transition={{ delay: 0.2 + idx * 0.05 }}
                             whileHover={{ x: 5, backgroundColor: 'rgba(56, 189, 248, 0.05)' }}
-                            className="p-2.5 rounded text-[10px] border-l-[3px] border-[var(--accent)] bg-white shadow-sm cursor-pointer group"
+                            className="p-2.5 rounded text-[10px] border-l-[3px] border-[var(--accent)] bg-white/5 shadow-sm cursor-pointer group hover:border-white transition-all"
                           >
                             <div className="flex justify-between items-start mb-1">
                               <span className="text-[var(--accent)] font-bold uppercase tracking-tighter">{news.publisher}</span>
-                              <span className="text-[8px] text-slate-400">{new Date(news.providerPublishTime * 1000).toLocaleTimeString()}</span>
+                              <span className="text-[8px] text-slate-500">{new Date(news.providerPublishTime * 1000).toLocaleTimeString()}</span>
                             </div>
-                            <div className="text-[#1e293b] font-medium leading-tight group-hover:text-[var(--accent)] transition-colors">
+                            <div className="text-slate-300 font-medium leading-tight group-hover:text-white transition-colors">
                               {news.title}
                             </div>
                           </motion.div>
@@ -416,13 +464,13 @@ export default function Dashboard() {
                       )}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-50">
+                    <div className="mt-4 pt-4 border-t border-white/5">
                        <motion.button 
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleAnalyze}
                         disabled={loading || !yahooData}
-                        className="w-full py-2.5 bg-[#0f172a] text-white rounded text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+                        className="w-full py-2.5 bg-[var(--accent)] text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:brightness-110 disabled:opacity-50 transition-all shadow-lg shadow-[var(--accent)]/20 flex items-center justify-center gap-2"
                       >
                         {loading ? (
                           <>
@@ -456,13 +504,13 @@ export default function Dashboard() {
                         animate={{ opacity: 1 }}
                         className="flex-1 flex flex-col gap-3 overflow-y-auto"
                       >
-                        <div className="text-sm leading-relaxed text-[#334155] border-l-2 border-[#cbd5e1] pl-3 italic">
+                        <div className="text-sm leading-relaxed text-slate-300 border-l-2 border-[var(--accent)] pl-3 italic">
                           {output.arbitrage_opportunity}
                         </div>
                         <div className="grid grid-cols-2 gap-3 mt-auto">
                           {[
                             { label: 'Financial Action', value: output.financial_execution.action, color: output.financial_execution.action === 'LONG' ? "text-emerald-500" : "text-rose-500" },
-                            { label: 'Asset Ticker', value: `$${output.financial_execution.asset_ticker}` },
+                            { label: 'Asset Ticker', value: `${output.financial_execution.asset_ticker}` },
                             { label: 'Logistical Action', value: output.logistical_execution.action, color: "text-amber-500" },
                             { label: 'Entry Catalyst', value: output.financial_execution.entry_catalyst, small: true }
                           ].map((cell, idx) => (
@@ -471,11 +519,11 @@ export default function Dashboard() {
                               initial={{ scale: 0.95, opacity: 0 }}
                               animate={{ scale: 1, opacity: 1 }}
                               transition={{ delay: 0.3 + idx * 0.1 }}
-                              whileHover={{ scale: 1.02, backgroundColor: '#f8fafc' }}
-                              className="execution-cell bg-white border border-slate-100 p-2 rounded shadow-sm"
+                              whileHover={{ scale: 1.02, backgroundColor: 'rgba(255,255,255,0.05)' }}
+                              className="execution-cell"
                             >
-                              <div className="cell-label text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{cell.label}</div>
-                              <div className={cn("cell-value font-black truncate", cell.color, cell.small ? "text-[10px]" : "text-xs")}>
+                              <div className="cell-label">{cell.label}</div>
+                              <div className={cn("cell-value truncate", cell.color, cell.small ? "text-[10px]" : "text-xs")}>
                                 {cell.value}
                               </div>
                             </motion.div>
@@ -507,9 +555,9 @@ export default function Dashboard() {
                         { label: 'Regulatory Counter-Action', width: '45%', color: 'bg-amber-500' },
                         { label: 'Liquidity Depth Variance', width: '22%', color: 'bg-blue-500' }
                       ].map((risk, idx) => (
-                        <div key={idx} className="flex justify-between items-center bg-slate-50/50 p-2 rounded">
-                          <div className="text-[11px] font-bold text-slate-600">{risk.label}</div>
-                          <div className="stat-bar w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div key={idx} className="flex justify-between items-center bg-white/5 p-2.5 rounded-xl border border-white/5">
+                          <div className="text-[11px] font-bold text-slate-400 tracking-tight">{risk.label}</div>
+                          <div className="stat-bar w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
                             <motion.div 
                               initial={{ width: 0 }}
                               animate={{ width: risk.width }}
@@ -523,7 +571,7 @@ export default function Dashboard() {
                         <motion.div 
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
-                          className="text-[10px] text-slate-500 mt-2 pt-3 border-t border-slate-100 leading-tight italic bg-white p-2 rounded shadow-inner"
+                          className="text-[10px] text-slate-400 mt-2 pt-3 border-t border-white/5 leading-tight italic bg-black/40 p-3 rounded-xl shadow-inner"
                         >
                           <strong>Critical Downside:</strong> {output.risk_exposure}
                         </motion.div>
@@ -543,22 +591,22 @@ export default function Dashboard() {
                       onClick={() => setActiveView('logistics')}
                       className="cursor-pointer group flex items-center gap-2 mb-2"
                     >
-                      <div className="text-xs font-black uppercase tracking-tighter text-[#0f172a] group-hover:text-[var(--accent)] transition-colors">
+                      <div className="text-xs font-black uppercase tracking-tighter text-slate-200 group-hover:text-[var(--accent)] transition-colors">
                         Live Global AIS Maritime Feed
                       </div>
                       <ChevronRight className="w-3 h-3 text-[var(--accent)] opacity-0 group-hover:opacity-100 transition-all" />
                     </motion.div>
-                    <div className="flex-1 min-h-[140px] relative group overflow-hidden">
+                    <div className="flex-1 min-h-[140px] relative group overflow-hidden bg-black/40 rounded-xl border border-white/5">
                        <GlobalShipMap />
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-3">
-                      <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
-                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Target Commodity</div>
-                        <strong className="block truncate">{output?.logistical_execution.target_commodity || "Petro-Natural Gas"}</strong>
+                      <div className="text-[11px] border border-[var(--border)] p-2 rounded-xl bg-black/20">
+                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold tracking-widest mb-1">Target Commodity</div>
+                        <strong className="block truncate text-white">{output?.logistical_execution.target_commodity || "Petro-Natural Gas"}</strong>
                       </div>
-                      <div className="text-[11px] border border-[var(--border)] p-1.5 rounded bg-slate-50">
-                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold">Geo-Focus</div>
-                        <strong className="block truncate">{output?.logistical_execution.geographic_focus || "Global South"}</strong>
+                      <div className="text-[11px] border border-[var(--border)] p-2 rounded-xl bg-black/20">
+                        <div className="text-[var(--text-muted)] text-[9px] uppercase font-bold tracking-widest mb-1">Geo-Focus</div>
+                        <strong className="block truncate text-white">{output?.logistical_execution.geographic_focus || "Global South"}</strong>
                       </div>
                     </div>
                   </motion.div>
@@ -597,7 +645,7 @@ export default function Dashboard() {
                   exit={{ opacity: 0, scale: 0.98 }}
                   className="flex-1 flex overflow-hidden"
                 >
-                  <MarketAnalytics />
+                  <MarketAnalytics theme={theme} />
                 </motion.div>
               )}
 
@@ -622,7 +670,7 @@ export default function Dashboard() {
           </div>
 
           {/* Right Sidebar - Stock Ticker */}
-          <aside className="w-[180px] flex-shrink-0 border-l border-[var(--border)] bg-white/30 backdrop-blur-sm">
+          <aside className="w-[180px] flex-shrink-0 border-l border-[var(--border)] bg-black/40 backdrop-blur-md z-20">
             <StockTicker />
           </aside>
         </div>

@@ -71,7 +71,7 @@ interface ChatMessage {
   timestamp: Date;
 }
 
-export default function MarketAnalytics() {
+export default function MarketAnalytics({ theme = 'dark' }: { theme?: string }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: 'ai', content: "SYSTEM_INITIALIZED: Agent 'QUANT-01' online. Provide a specific equity ticker or geopolitical vector for deep-scan analysis.", timestamp: new Date() }
   ]);
@@ -119,10 +119,10 @@ export default function MarketAnalytics() {
                   selectedAsset === 'GC=F' ? 'COMEX:GC1!' : selectedAsset,
           interval: "D",
           timezone: "Etc/UTC",
-          theme: "light",
+          theme: theme === 'light' ? 'light' : 'dark',
           style: "1",
           locale: "en",
-          toolbar_bg: "#f1f3f6",
+          toolbar_bg: theme === 'light' ? "#ffffff" : "#0c121e",
           enable_publishing: false,
           hide_top_toolbar: false,
           hide_legend: false,
@@ -133,9 +133,11 @@ export default function MarketAnalytics() {
     };
     document.head.appendChild(script);
     return () => {
-      // Clean up if necessary
+       if (script.parentNode) {
+         document.head.removeChild(script);
+       }
     };
-  }, [selectedAsset]);
+  }, [selectedAsset, theme]);
 
   const handleAddAsset = (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,14 +188,14 @@ export default function MarketAnalytics() {
   const currentChartData = currentAssetData?.data || [];
 
   return (
-    <div className="flex-1 flex flex-col bg-[#f8fafc] overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[var(--bg)] overflow-hidden">
       {/* Analytics Breadcrumb/Header */}
-      <div className="px-6 py-3 border-b border-[var(--border)] bg-white/40 backdrop-blur-md flex items-center justify-between">
+      <div className="px-6 py-3 border-b border-[var(--border)] bg-white/5 backdrop-blur-md flex items-center justify-between">
          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 px-2 py-1 bg-[#1e293b] text-white rounded text-[10px] font-black uppercase tracking-widest">
+            <div className="flex items-center gap-2 px-2 py-1 bg-white/5 border border-white/10 text-white rounded text-[10px] font-black uppercase tracking-widest">
                 <Cpu className="w-3 h-3" /> NODE_04_PULSE
             </div>
-            <div className="flex items-center gap-2 text-[#64748b]">
+            <div className="flex items-center gap-2 text-slate-500">
                 <Activity className="w-3 h-3 text-[var(--accent)]" />
                 <span className="text-[10px] font-bold uppercase tracking-wider">HFT Stream: Active</span>
             </div>
@@ -201,7 +203,7 @@ export default function MarketAnalytics() {
          <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5 grayscale hover:grayscale-0 transition-all cursor-crosshair">
                 <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
-                <span className="text-[9px] font-mono font-bold text-[#64748b]">DELTA: +0.02%</span>
+                <span className="text-[9px] font-mono font-bold text-slate-500">DELTA: +0.02%</span>
             </div>
          </div>
       </div>
@@ -209,8 +211,8 @@ export default function MarketAnalytics() {
       <div className="flex-1 p-6 grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-6 overflow-hidden">
         
         {/* Left Column: AI QUANT CHAT */}
-        <div className="flex flex-col bg-white border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-          <div className="p-4 border-b border-[var(--border)] bg-[#0f172a] text-white flex items-center justify-between">
+        <div className="flex flex-col bg-white/5 border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+          <div className="p-4 border-b border-[var(--border)] bg-black/60 text-white flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-[#38bdf8]" />
                 <h3 className="text-[11px] font-black uppercase tracking-widest italic">Quant-01 Intelligence</h3>
@@ -223,7 +225,7 @@ export default function MarketAnalytics() {
 
           <div 
             ref={scrollRef}
-            className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-white/95"
+            className="flex-1 p-4 overflow-y-auto space-y-4 custom-scrollbar bg-black/20"
           >
             {messages.map((msg, i) => (
               <motion.div
@@ -238,12 +240,12 @@ export default function MarketAnalytics() {
                 <div className={cn(
                   "p-3 rounded-xl text-[11px] leading-relaxed shadow-sm",
                   msg.role === 'user' 
-                    ? "bg-[var(--accent)] text-white font-medium" 
-                    : "bg-[#f1f5f9] text-[#1e293b] border border-[#e2e8f0] font-mono"
+                    ? "bg-[var(--accent)] text-black font-black" 
+                    : "bg-white/5 text-slate-200 border border-white/5 font-mono"
                 )}>
                   {msg.content}
                 </div>
-                <span className="text-[8px] mt-1 text-[#94a3b8] font-mono">
+                <span className="text-[8px] mt-1 text-slate-500 font-mono">
                   {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                 </span>
               </motion.div>
