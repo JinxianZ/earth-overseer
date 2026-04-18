@@ -243,6 +243,41 @@ async function startServer() {
     res.json(intel);
   });
 
+  // Yahoo Finance / News Ingest
+  app.get('/api/yahoo-ingest', async (req, res) => {
+    try {
+      const query = (req.query.q as string) || 'market';
+      console.log('[API] Yahoo Ingest fetch for query:', query);
+      
+      // Fetch search results which include news
+      const searchResults = await yf.search(query, { newsCount: 10 });
+      
+      // Fetch some general market indicators for context
+      const indicators = await Promise.all([
+        yf.quote('^GSPC'), // S&P 500
+        yf.quote('^IXIC'), // Nasdaq
+        yf.quote('CL=F'),   // Crude Oil
+        yf.quote('GC=F'),   // Gold
+      ]);
+
+      const formattedIndicators = indicators.map(quote => ({
+        symbol: quote.symbol,
+        name: quote.shortName,
+        price: quote.regularMarketPrice,
+        changePercent: quote.regularMarketChangePercent,
+      }));
+
+      res.json({
+        news: searchResults.news,
+        indicators: formattedIndicators,
+        quotes: searchResults.quotes
+      });
+    } catch (error: any) {
+      console.error('[API] Yahoo Ingest failure:', error);
+      res.status(500).json({ error: 'Failed to fetch Yahoo data', details: error.message });
+    }
+  });
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },

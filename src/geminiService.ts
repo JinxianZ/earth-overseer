@@ -96,3 +96,83 @@ export async function analyzeMacroRisk(input: MacroInput): Promise<MacroOutput> 
     throw error;
   }
 }
+
+export interface FactCheckResult {
+  is_likely_fake: boolean;
+  verdict_summary: string;
+  reasoning: string;
+  warning_signs: string[];
+  sources: { title: string; url: string }[];
+}
+
+export async function verifyFact(claimOrUrl: string): Promise<FactCheckResult> {
+  const ai = getAI();
+  
+  const VERIFICATION_PROMPT = `You are a high-fidelity Fact-Checking Intelligence Agent. 
+Input: A claim or a URL.
+Mission: Perform extensive web research to verify the veracity of the input.
+Output: Identify if it's fake/misleading, provide a concise verdict, detailed reasoning, specific warning signs to look for in similar content, and list credible sources used for verification.
+
+Constraints:
+1. Use the googleSearch tool to find multiple credible sources.
+2. If it's a URL, analyze the content and the reputation of the domain.
+3. Be objective and clinical.
+4. Output MUST be in JSON format matching the schema provided.`;
+
+  const VERIFICATION_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+      is_likely_fake: { type: Type.BOOLEAN },
+      verdict_summary: { type: Type.STRING },
+      reasoning: { type: Type.STRING },
+      warning_signs: { 
+        type: Type.ARRAY,
+        items: { type: Type.STRING }
+      },
+      sources: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            url: { type: Type.STRING }
+          },
+          required: ["title", "url"]
+        }
+      }
+    },
+    required: ["is_likely_fake", "verdict_summary", "reasoning", "warning_signs", "sources"]
+  };
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: [
+        { role: 'user', parts: [{ text: claimOrUrl }] }
+      ],
+      config: {
+        systemInstruction: VERIFICATION_PROMPT,
+        temperature: 0.2,
+        responseMimeType: "application/json",
+        responseSchema: VERIFICATION_SCHEMA,
+        safetySettings: SAFETY_SETTINGS as any,
+        tools: [{ googleSearch: {} }]
+      }
+    });
+
+    if (!response.text) {
+      throw new Error("No response from Verification Node");
+    }
+
+    const result = JSON.parse(response.text) as FactCheckResult;
+    
+    // Supplement with grounding metadata if available and not already in sources
+    const groundingSources = response.candidates?.[0]?.groundingMetadata?.searchEntryPoint?.renderedContent;
+    // Note: The specific format of groundingMetadata can vary, but the schema returned by the model should be prioritized.
+    
+    return result;
+  } catch (error) {
+    console.error("Fact Check Error:", error);
+    throw error;
+  }
+}

@@ -13,7 +13,8 @@ import {
   ChevronRight,
   RefreshCw,
   Search,
-  Lock
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -44,8 +45,8 @@ const HISTORICAL_SUEZ_MOCK: MacroInput = {
     { company: "Evergreen Marine Corp", allegation: "Logistical failure / massive liability", market_cap_loss: "$500M (estimated)" }
   ],
   market_data: [
-    { ticker: "BRENT_CRUDE", price: 65.20, change_24h: 3.5, volatility: 0.25 },
-    { ticker: "WTI_CRUDE", price: 61.80, change_24h: 2.8, volatility: 0.22 },
+    { ticker: "BRENT_CRUDE", price: 82.20, change_24h: 3.5, volatility: 0.25 },
+    { ticker: "WTI_CRUDE", price: 78.80, change_24h: 2.8, volatility: 0.22 },
     { ticker: "ZIM_INTEGRATED", price: 28.40, change_24h: -1.2, volatility: 0.18 }
   ],
   logistics_data: [
@@ -53,6 +54,12 @@ const HISTORICAL_SUEZ_MOCK: MacroInput = {
     { chokepoint: "Cape of Good Hope", status: "CONGESTED", vessel_count: 45 }
   ]
 };
+
+interface YahooData {
+  news: any[];
+  indicators: any[];
+  quotes: any[];
+}
 
 const CHART_DATA = [
   { time: '00:00', value: 2400 },
@@ -68,8 +75,138 @@ import GlobalShipMap from './GlobalShipMap';
 import StockTicker from './StockTicker';
 import GeopoliticalMonitor from './GeopoliticalMonitor';
 import MarketAnalytics from './MarketAnalytics';
+import TruthVerifyTerminal from './TruthVerifyTerminal';
 
-type AppTab = 'dashboard' | 'market' | 'geopolitical' | 'logistics';
+type AppTab = 'dashboard' | 'market' | 'geopolitical' | 'logistics' | 'truth';
+
+// New Component for Orbital Navigation
+const Satellite = ({ color = "#38bdf8" }: { color?: string }) => (
+  <div className="relative flex items-center justify-center scale-[0.6]">
+    {/* Solar Panels */}
+    <div className="absolute w-8 h-2 bg-slate-700/80 border border-white/10 rounded-sm overflow-hidden flex">
+        <div className="flex-1 border-r border-white/5 bg-slate-800" />
+        <div className="flex-1 border-r border-white/5 bg-slate-800" />
+        <div className="flex-1 bg-slate-800" />
+    </div>
+    {/* Satellite Body */}
+    <div className="absolute w-2 h-3 bg-slate-400 rounded-sm shadow-sm" />
+    {/* Antenna */}
+    <div className="absolute -top-3 w-[1px] h-3 bg-slate-400" />
+    <div className="absolute -top-4 w-1 h-1 bg-slate-300 rounded-full" />
+    {/* Dynamic Signal Indicator */}
+    <motion.div 
+      animate={{ opacity: [0.2, 1, 0.2] }}
+      transition={{ duration: 1, repeat: Infinity }}
+      className="absolute z-10 w-0.5 h-0.5 rounded-full"
+      style={{ backgroundColor: color, boxShadow: `0 0 4px ${color}` }}
+    />
+  </div>
+);
+
+const OrbitalNav = ({ 
+  activeView, 
+  setActiveView 
+}: { 
+  activeView: AppTab, 
+  setActiveView: (view: AppTab) => void 
+}) => {
+  const tabs: { id: AppTab; icon: any; label: string }[] = [
+    { id: 'dashboard', icon: BarChart3, label: 'Control' },
+    { id: 'market', icon: Activity, label: 'Pulse' },
+    { id: 'geopolitical', icon: Globe, label: 'Geo' },
+    { id: 'logistics', icon: Truck, label: 'Matrix' },
+    { id: 'truth', icon: ShieldCheck, label: 'Truth' }
+  ];
+
+  return (
+    <div className="relative w-full aspect-square flex items-center justify-center p-4">
+      {/* Background Orbital Rings */}
+      <div className="absolute inset-0 border border-white/5 rounded-full scale-[0.85]" />
+      <div className="absolute inset-0 border border-white/5 rounded-full scale-[0.6]" />
+      
+      {/* Central Globe - 3D Spherical Effect */}
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => setActiveView('dashboard')}
+        className="relative z-20 w-32 h-32 rounded-full cursor-pointer group shadow-[0_0_50px_rgba(56,189,248,0.1)]"
+        style={{
+          background: "radial-gradient(circle at 35% 35%, #1e3a8a 0%, #0f172a 100%)",
+          boxShadow: "inset -10px -10px 40px rgba(0,0,0,0.8), inset 10px 10px 40px rgba(255,255,255,0.1), 0 0 30px rgba(56,189,248,0.2)"
+        }}
+      >
+        {/* Globe Atmosphere/Glow */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#38bdf8]/0 to-[#38bdf8]/10 pointer-events-none" />
+        
+        {/* Moving Map Texture */}
+        <motion.div 
+          animate={{ backgroundPositionX: ["0%", "100%"] }}
+          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 opacity-40 rounded-full"
+          style={{
+            backgroundImage: "url('https://www.transparenttextures.com/patterns/simple-dashed.png')",
+            backgroundSize: "200% 100%",
+            maskImage: "radial-gradient(circle, black 100%, transparent 100%)",
+            WebkitMaskImage: "radial-gradient(circle, black 100%, transparent 100%)"
+          }}
+        />
+
+        <div className="relative z-10 w-full h-full flex flex-col items-center justify-center">
+            <Globe className="w-10 h-10 text-[#38bdf8] mb-1 drop-shadow-[0_0_8px_rgba(56,189,248,0.5)]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-[#38bdf8] drop-shadow-md">ORBIT</span>
+        </div>
+        
+        {/* Surface reflection */}
+        <div className="absolute top-4 left-4 w-12 h-6 bg-white/10 rounded-full blur-md -rotate-45 pointer-events-none" />
+      </motion.div>
+
+      {/* Rotating Satellites - Realistic Models */}
+      {[0, 1].map((i) => (
+        <motion.div
+          key={`sat-${i}`}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 25 + i * 10, repeat: Infinity, ease: "linear" }}
+          className="absolute w-full h-full pointer-events-none"
+          style={{ rotate: i * 180 }}
+        >
+          <div className="absolute top-0 left-1/2 -translate-x-1/2">
+             <Satellite color={i === 0 ? "#38bdf8" : "#fbbf24"} />
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Orbital Tabs */}
+      {tabs.map((tab, idx) => {
+        const total = tabs.length;
+        const angle = (idx * 360) / total - 90; // Start from top
+        const radius = 90; // Orbital radius in pixels
+
+        return (
+          <motion.button
+            key={tab.id}
+            initial={false}
+            animate={{
+              x: Math.cos((angle * Math.PI) / 180) * radius,
+              y: Math.sin((angle * Math.PI) / 180) * radius,
+            }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setActiveView(tab.id)}
+            className={cn(
+              "absolute z-30 w-12 h-12 rounded-full flex flex-col items-center justify-center transition-all border shadow-lg",
+              activeView === tab.id 
+                ? "bg-[#38bdf8] text-white border-[#38bdf8] shadow-[#38bdf8]/40" 
+                : "bg-[#1e293b] text-[#94a3b8] border-[#334155] hover:border-[#38bdf8] hover:text-white"
+            )}
+          >
+            <tab.icon className="w-4 h-4" />
+            <span className="text-[7px] font-bold uppercase mt-0.5 tracking-tighter">{tab.label}</span>
+          </motion.button>
+        );
+      })}
+    </div>
+  );
+};
 
 export default function Dashboard() {
   const [input, setInput] = useState<MacroInput>(HISTORICAL_SUEZ_MOCK);
@@ -78,6 +215,21 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<AppTab>('dashboard');
   const [logs, setLogs] = useState<string[]>(["[SYSTEM] Node initialized", "[SYSTEM] Awaiting ingestion..."]);
+  const [yahooData, setYahooData] = useState<YahooData | null>(null);
+
+  useEffect(() => {
+    const fetchYahoo = async () => {
+      try {
+        const res = await fetch('/api/yahoo-ingest?q=global+logistics+market');
+        const data = await res.json();
+        setYahooData(data);
+        addLog(`Yahoo Ingest: Sync'd ${data.news?.length || 0} intelligence vectors.`);
+      } catch (err) {
+        addLog("Yahoo Ingest: Node failure.");
+      }
+    };
+    fetchYahoo();
+  }, []);
 
   const addLog = (msg: string) => {
     setLogs(prev => [`[${new Date().toLocaleTimeString()}] ${msg}`, ...prev.slice(0, 9)]);
@@ -103,61 +255,54 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text-main)] font-sans flex w-full h-screen overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-[260px] bg-[var(--sidebar)] text-white p-6 flex flex-col gap-8 flex-shrink-0">
-        <div className="flex items-center gap-3 font-extrabold text-sm tracking-widest text-[#38bdf8] uppercase">
-          <span className="text-xl italic font-serif">◈</span> Orchestrator v1.5
+      {/* Sidebar - Redesigned to Orbital Command Hub */}
+      <aside className="w-[300px] bg-[#0c121e] text-white p-6 flex flex-col gap-8 flex-shrink-0 border-r border-white/5 relative overflow-hidden">
+        {/* Background circuit pattern */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/micro-carbon.png')]" />
+        
+        <div className="relative z-10 flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3 font-extrabold text-sm tracking-widest text-[#38bdf8] uppercase">
+                <span className="text-xl italic font-serif">◈</span> Node_04
+            </div>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20">
+                <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[8px] font-mono text-emerald-400">SYNC_OK</span>
+            </div>
         </div>
 
-        <nav className="flex flex-col gap-2">
-          <button 
-            onClick={() => setActiveView('dashboard')}
-            className={cn(
-              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
-              activeView === 'dashboard' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
-            )}
-          >
-            <BarChart3 className="w-4 h-4" /> Dashboard
-          </button>
-          <button 
-            onClick={() => setActiveView('market')}
-            className={cn(
-              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
-              activeView === 'market' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
-            )}
-          >
-            <Activity className="w-4 h-4" /> Market Pulse
-          </button>
-          <button 
-            onClick={() => setActiveView('geopolitical')}
-            className={cn(
-              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
-              activeView === 'geopolitical' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
-            )}
-          >
-            <Globe className="w-4 h-4" /> Geopolitical Monitor
-          </button>
-          <button 
-            onClick={() => setActiveView('logistics')}
-            className={cn(
-              "flex items-center gap-3 py-2.5 px-3 rounded-md transition-all text-left w-full",
-              activeView === 'logistics' ? "bg-white/10 text-white font-semibold" : "text-[#94a3b8] hover:text-white"
-            )}
-          >
-            <Truck className="w-4 h-4" /> Logistics Matrix
-          </button>
-          <div className="flex items-center gap-3 py-2.5 px-3 rounded-md text-[#94a3b8] hover:text-white cursor-pointer transition-colors opacity-50">
-            <RefreshCw className="w-4 h-4" /> Backtesting Lab
-          </div>
-        </nav>
+        <div className="relative flex-1 flex flex-col gap-8">
+            <div className="py-4">
+                <OrbitalNav activeView={activeView} setActiveView={setActiveView} />
+            </div>
 
-        <div className="mt-auto border-t border-[#334155] pt-4 text-xs text-[#94a3b8]">
-          <div className="mb-2 font-bold uppercase tracking-wider">System Parameters</div>
-          <div className="font-mono text-[10px] opacity-80 space-y-1">
-            <div>MODEL: Gemini 1.5 Pro</div>
-            <div>TEMP: 0.1</div>
-            <div>SAFETY: UNRESTRICTED</div>
-            <div>FORMAT: JSON_V2</div>
+            <div className="px-2">
+                <div className="mb-4 font-black uppercase tracking-widest text-[10px] text-[#475569] flex items-center justify-between">
+                    <span>Active Telemetry</span>
+                    <RefreshCw className="w-2.5 h-2.5 animate-spin text-[#38bdf8]" />
+                </div>
+                <div className="space-y-3">
+                    {logs.slice(0, 4).map((log, i) => (
+                        <motion.div 
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="p-2 bg-white/5 rounded border border-white/5 font-mono text-[9px] text-[#94a3b8] leading-tight"
+                        >
+                            {log}
+                        </motion.div>
+                    ))}
+                </div>
+            </div>
+        </div>
+
+        <div className="relative z-10 mt-auto border-t border-white/5 pt-4 text-[9px] text-[#475569]">
+          <div className="mb-2 font-bold uppercase tracking-wider flex items-center gap-2">
+            <Lock className="w-2.5 h-2.5" /> Security Protocol V2
+          </div>
+          <div className="font-mono opacity-80 space-y-1">
+             <div className="flex justify-between"><span>NODE_ID:</span> <span className="text-white">AIS_37_Ω</span></div>
+             <div className="flex justify-between"><span>DIST:</span> <span className="text-white">ENCRYPTED</span></div>
+             <div className="flex justify-between"><span>SAFETY:</span> <span className="text-emerald-500">NOMINAL</span></div>
           </div>
         </div>
       </aside>
@@ -192,103 +337,196 @@ export default function Dashboard() {
                   exit={{ opacity: 0, y: -10 }}
                   className="flex-1 p-6 grid grid-cols-[1fr_1.2fr] grid-rows-[1fr_1fr] gap-5 overflow-hidden"
                 >
-                  <div className="card overflow-hidden">
-                    <div className="card-title">
-                      <span>Multimodal Global Ingest</span>
-                      <span className="text-[var(--accent)]">{input.geopolitical_data.length + input.corporate_scandals.length} New Alerts</span>
+                  <div className="card overflow-hidden flex flex-col">
+                    <motion.div 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="card-title flex justify-between items-center mb-4"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Terminal className="w-4 h-4 text-[var(--accent)]" />
+                        <span>Section F: Multimodal Global Ingest</span>
+                      </div>
+                      <span className="text-[var(--accent)] text-[10px] animate-pulse">
+                        {yahooData ? `${yahooData.news.length + yahooData.indicators.length} Active Feeds` : "Synchronizing..."}
+                      </span>
+                    </motion.div>
+
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-3">
+                      {/* Yahoo Indicators */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {yahooData?.indicators.map((ind, idx) => (
+                          <motion.div
+                            key={`ind-${idx}`}
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ delay: idx * 0.05 }}
+                            whileHover={{ scale: 1.05, borderLeft: '4px solid var(--accent)' }}
+                            className="p-2 bg-slate-50 border border-slate-100 rounded text-[10px] flex justify-between items-center"
+                          >
+                            <span className="font-bold text-[#475569]">{ind.symbol}</span>
+                            <span className={cn(
+                              "font-mono font-black",
+                              ind.changePercent >= 0 ? "text-emerald-500" : "text-rose-500"
+                            )}>
+                              {ind.changePercent >= 0 ? '+' : ''}{ind.changePercent?.toFixed(2)}%
+                            </span>
+                          </motion.div>
+                        ))}
+                      </div>
+
+                      {/* Yahoo News Feed */}
+                      <AnimatePresence>
+                        {(yahooData?.news || []).map((news, idx) => (
+                          <motion.div
+                            key={`news-${idx}`}
+                            initial={{ x: -20, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 + idx * 0.05 }}
+                            whileHover={{ x: 5, backgroundColor: 'rgba(56, 189, 248, 0.05)' }}
+                            className="p-2.5 rounded text-[10px] border-l-[3px] border-[var(--accent)] bg-white shadow-sm cursor-pointer group"
+                          >
+                            <div className="flex justify-between items-start mb-1">
+                              <span className="text-[var(--accent)] font-bold uppercase tracking-tighter">{news.publisher}</span>
+                              <span className="text-[8px] text-slate-400">{new Date(news.providerPublishTime * 1000).toLocaleTimeString()}</span>
+                            </div>
+                            <div className="text-[#1e293b] font-medium leading-tight group-hover:text-[var(--accent)] transition-colors">
+                              {news.title}
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+
+                      {!yahooData && (
+                        <div className="py-12 flex flex-col items-center justify-center gap-3 opacity-20">
+                          <RefreshCw className="w-8 h-8 animate-spin" />
+                          <span className="text-[10px] uppercase font-black tracking-widest text-center">Inhaling Global Data Stream...</span>
+                        </div>
+                      )}
                     </div>
-                    <ul className="flex flex-col gap-2.5 overflow-y-auto pr-1">
-                      {input.geopolitical_data.map((item, idx) => (
-                        <li key={`geo-${idx}`} className="p-2.5 rounded text-xs border-l-[3px] border-[var(--danger)] bg-[#fef2f2]">
-                          <strong>GEOPOLITICAL:</strong> {item.event} in {item.location}.
-                        </li>
-                      ))}
-                      {input.market_data.map((item, idx) => (
-                        <li key={`market-${idx}`} className="p-2.5 rounded text-xs border-l-[3px] border-[var(--accent)] bg-[#f1f5f9]">
-                          <strong>MARKET:</strong> {item.ticker} price volatility spike. Current: {item.price}.
-                        </li>
-                      ))}
-                      <li className="flex-1 flex flex-col justify-end pt-2">
-                         <button 
-                          onClick={handleAnalyze}
-                          disabled={loading}
-                          className="w-full py-2 bg-[var(--accent)] text-white rounded text-xs font-bold uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-opacity"
-                        >
-                          {loading ? "Synthesizing..." : "Run Analysis Node"}
-                        </button>
-                      </li>
-                    </ul>
+
+                    <div className="mt-4 pt-4 border-t border-slate-50">
+                       <motion.button 
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={handleAnalyze}
+                        disabled={loading || !yahooData}
+                        className="w-full py-2.5 bg-[#0f172a] text-white rounded text-[10px] font-black uppercase tracking-[0.2em] hover:bg-slate-800 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+                      >
+                        {loading ? (
+                          <>
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            Synthesizing...
+                          </>
+                        ) : (
+                          <>
+                            <Activity className="w-3 h-3" />
+                            Ingest Matrix Synthesis
+                          </>
+                        )}
+                      </motion.button>
+                    </div>
                   </div>
 
                   {/* Card 2: Arbitrage Opportunity Synthesis */}
-                  <div className="card overflow-hidden">
-                    <div className="card-title">Arbitrage Opportunity Synthesis</div>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="card overflow-hidden"
+                  >
+                    <div className="card-title flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-[#38bdf8]" />
+                      Arbitrage Opportunity Synthesis
+                    </div>
                     {output ? (
-                      <div className="flex-1 flex flex-col gap-3 overflow-y-auto">
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex-1 flex flex-col gap-3 overflow-y-auto"
+                      >
                         <div className="text-sm leading-relaxed text-[#334155] border-l-2 border-[#cbd5e1] pl-3 italic">
                           {output.arbitrage_opportunity}
                         </div>
                         <div className="grid grid-cols-2 gap-3 mt-auto">
-                          <div className="execution-cell">
-                            <div className="cell-label">Financial Action</div>
-                            <div className={cn("cell-value uppercase", output.financial_execution.action === 'LONG' ? "text-[var(--success)]" : "text-[var(--danger)]")}>
-                              {output.financial_execution.action}
-                            </div>
-                          </div>
-                          <div className="execution-cell">
-                            <div className="cell-label">Asset Ticker</div>
-                            <div className="cell-value">${output.financial_execution.asset_ticker}</div>
-                          </div>
-                          <div className="execution-cell">
-                            <div className="cell-label">Logistical Action</div>
-                            <div className="cell-value text-[var(--warning)]">{output.logistical_execution.action}</div>
-                          </div>
-                          <div className="execution-cell">
-                            <div className="cell-label">Entry Catalyst</div>
-                            <div className="cell-value !text-[12px]">{output.financial_execution.entry_catalyst}</div>
-                          </div>
+                          {[
+                            { label: 'Financial Action', value: output.financial_execution.action, color: output.financial_execution.action === 'LONG' ? "text-emerald-500" : "text-rose-500" },
+                            { label: 'Asset Ticker', value: `$${output.financial_execution.asset_ticker}` },
+                            { label: 'Logistical Action', value: output.logistical_execution.action, color: "text-amber-500" },
+                            { label: 'Entry Catalyst', value: output.financial_execution.entry_catalyst, small: true }
+                          ].map((cell, idx) => (
+                            <motion.div 
+                              key={idx}
+                              initial={{ scale: 0.95, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ delay: 0.3 + idx * 0.1 }}
+                              whileHover={{ scale: 1.02, backgroundColor: '#f8fafc' }}
+                              className="execution-cell bg-white border border-slate-100 p-2 rounded shadow-sm"
+                            >
+                              <div className="cell-label text-[9px] font-bold text-slate-400 uppercase tracking-tighter">{cell.label}</div>
+                              <div className={cn("cell-value font-black truncate", cell.color, cell.small ? "text-[10px]" : "text-xs")}>
+                                {cell.value}
+                              </div>
+                            </motion.div>
+                          ))}
                         </div>
-                      </div>
+                      </motion.div>
                     ) : (
                       <div className="flex-1 flex flex-col items-center justify-center opacity-30 text-center space-y-4">
                         <ShieldAlert className="w-12 h-12" />
                         <p className="text-xs uppercase font-bold tracking-widest">Awaiting Synthesis Output</p>
                       </div>
                     )}
-                  </div>
+                  </motion.div>
 
                   {/* Card 3: Risk Exposure Analysis */}
-                  <div className="card overflow-hidden">
-                    <div className="card-title">Risk Exposure Analysis</div>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="card overflow-hidden"
+                  >
+                    <div className="card-title flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                      Risk Exposure Analysis
+                    </div>
                     <div className="flex flex-col gap-4">
-                      <div className="flex justify-between items-center">
-                        <div className="text-[13px] text-[var(--text-muted)]">Geopolitical Contagion</div>
-                        <div className="stat-bar">
-                          <div className="stat-fill bg-[var(--danger)]" style={{ width: '88%' }}></div>
+                      {[
+                        { label: 'Geopolitical Contagion', width: '88%', color: 'bg-rose-500' },
+                        { label: 'Regulatory Counter-Action', width: '45%', color: 'bg-amber-500' },
+                        { label: 'Liquidity Depth Variance', width: '22%', color: 'bg-blue-500' }
+                      ].map((risk, idx) => (
+                        <div key={idx} className="flex justify-between items-center bg-slate-50/50 p-2 rounded">
+                          <div className="text-[11px] font-bold text-slate-600">{risk.label}</div>
+                          <div className="stat-bar w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: 0 }}
+                              animate={{ width: risk.width }}
+                              transition={{ duration: 1, delay: 0.5 + idx * 0.1 }}
+                              className={cn("h-full", risk.color)} 
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="text-[13px] text-[var(--text-muted)]">Regulatory Counter-Action</div>
-                        <div className="stat-bar">
-                          <div className="stat-fill bg-[var(--warning)]" style={{ width: '45%' }}></div>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="text-[13px] text-[var(--text-muted)]">Liquidity Depth Variance</div>
-                        <div className="stat-bar">
-                          <div className="stat-fill" style={{ width: '22%' }}></div>
-                        </div>
-                      </div>
+                      ))}
                       {output && (
-                        <div className="text-[11px] text-[var(--text-muted)] mt-2 pt-3 border-t border-[var(--border)] leading-tight italic">
-                          Primary Downside: {output.risk_exposure}
-                        </div>
+                        <motion.div 
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          className="text-[10px] text-slate-500 mt-2 pt-3 border-t border-slate-100 leading-tight italic bg-white p-2 rounded shadow-inner"
+                        >
+                          <strong>Critical Downside:</strong> {output.risk_exposure}
+                        </motion.div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Card 4: Logistical Execution Vector */}
-                  <div className="card overflow-hidden">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="card overflow-hidden group"
+                  >
                     <motion.div 
                       whileHover={{ scale: 1.02, x: 5 }}
                       onClick={() => setActiveView('logistics')}
@@ -312,7 +550,7 @@ export default function Dashboard() {
                         <strong className="block truncate">{output?.logistical_execution.geographic_focus || "Global South"}</strong>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </motion.main>
               )}
 
@@ -352,7 +590,19 @@ export default function Dashboard() {
                 </motion.div>
               )}
 
-              {activeView !== 'dashboard' && activeView !== 'geopolitical' && activeView !== 'logistics' && activeView !== 'market' && (
+              {activeView === 'truth' && (
+                <motion.div
+                  key="truth"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex-1 flex overflow-hidden"
+                >
+                  <TruthVerifyTerminal />
+                </motion.div>
+              )}
+
+              {activeView !== 'dashboard' && activeView !== 'geopolitical' && activeView !== 'logistics' && activeView !== 'market' && activeView !== 'truth' && (
                 <div className="flex-1 flex items-center justify-center text-[var(--text-muted)] font-mono text-sm">
                   VECTOR_NODE [{activeView}] UNDER_MAINTENANCE...
                 </div>
